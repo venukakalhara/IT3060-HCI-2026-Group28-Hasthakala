@@ -68,6 +68,12 @@ class RouteGenerator {
           builder: (_) => OrderTrackingScreen(orderId: orderId),
         );
 
+      case AppRoutes.buyerChat:
+        final orderId = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => BuyerChatScreen(orderId: orderId),
+        );
+
       case AppRoutes.artisanDashboard:
         return MaterialPageRoute(builder: (_) => const ArtisanDashboardScreen());
 

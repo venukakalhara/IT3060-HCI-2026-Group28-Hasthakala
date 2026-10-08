@@ -6,6 +6,7 @@ import '../../../../core/shared_models/order_model.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../widgets/order_text.dart';
 import '../widgets/purchase_parts.dart';
+import 'my_orders_screen.dart';
 import 'order_tracking_screen.dart';
 
 /// Assigned to: DISSANAYAKE D. M. S. D.
@@ -22,7 +23,9 @@ class OrderPlacedScreen extends StatelessWidget {
 
   void _track(BuildContext context) {
     Navigator.of(context).pushReplacement(MaterialPageRoute(
-      builder: (_) => OrderTrackingScreen(orderId: orders.first.id),
+      builder: (_) => orders.length == 1
+          ? OrderTrackingScreen(orderId: orders.first.id)
+          : const MyOrdersScreen(),
     ));
   }
 
