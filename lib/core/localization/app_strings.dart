@@ -1,4 +1,5 @@
 import 'discovery_strings.dart';
+import 'purchase_strings.dart';
 
 // All fixed on-screen text in English, Sinhala and Tamil.
 // Use  in a widget with:  context.tr('sign_in')
@@ -9,6 +10,7 @@ class AppStrings {
 
   static const Map<String, Map<String, String>> values = {
     ...discoveryStrings,
+    ...purchaseStrings,
     // ---- general ----
     'continue': {'en': 'Continue', 'si': 'ඉදිරියට', 'ta': 'தொடரவும்'},
     'skip': {'en': 'Skip', 'si': 'මඟ හරින්න', 'ta': 'தவிர்'},

@@ -35,7 +35,14 @@ class HasthakalaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FamilySupportProvider()), // I13
         ChangeNotifierProvider(create: (_) => ArtisanProfileProvider()), // I05
         ChangeNotifierProvider(create: (_) => DiscoveryProvider()),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
+        // I06 cart follows the signed-in account (saved in users/{uid}/cart)
+        ChangeNotifierProxyProvider<AuthProvider, CartProvider>(
+          create: (_) => CartProvider(),
+          update: (_, auth, cart) {
+            cart!.setAccount(auth.currentUser?.uid);
+            return cart;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => ArtisanDashboardProvider()),
         ChangeNotifierProvider(create: (_) => ArtisanOrdersProvider()),
       ],

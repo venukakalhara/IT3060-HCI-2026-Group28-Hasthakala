@@ -40,7 +40,12 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const CartScreen());
 
       case AppRoutes.checkout:
-        return MaterialPageRoute(builder: (_) => const CheckoutScreen());
+        // Buy Now sends one product, the cart sends nothing
+        final buyNow = settings.arguments;
+        return MaterialPageRoute(
+          builder: (_) => CheckoutScreen(
+              buyNow: buyNow is BuyNowRequest ? buyNow : null),
+        );
 
       case AppRoutes.verifiedLabMatrix:
         return MaterialPageRoute(builder: (_) => const VerifiedLabMatrixScreen());
