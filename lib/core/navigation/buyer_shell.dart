@@ -5,7 +5,7 @@ import '../localization/tr.dart';
 import '../../features/account/presentation/screens/profile_screen.dart';
 import '../../features/discovery/presentation/screens/home_screen.dart';
 import '../../features/discovery/presentation/screens/search_screen.dart';
-import '../widgets/placeholder_tab.dart';
+import '../../features/purchase/presentation/screens/my_orders_screen.dart';
 
 // Buyer bottom navigation.
 // Home | Search | Orders | Profile. Cart is a contextual action, not a tab.
@@ -23,7 +23,7 @@ class _BuyerShellState extends State<BuyerShell> {
   static const List<Widget> _tabs = [
     HomeScreen(), // I02 
     SearchScreen(), // I03 
-    PlaceholderTab(title: 'My Orders', interfaceId: 'I08', owner: 'Member 2'),
+    MyOrdersScreen(), // I08
     ProfileScreen(), // buyer profile 
   ];
 
