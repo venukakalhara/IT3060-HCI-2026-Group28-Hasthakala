@@ -10,6 +10,7 @@ class FirestoreCollections {
   static const String reviews = 'reviews';
   static const String supportGrants = 'supportGrants';
   static const String supportInvites = 'supportInvites';
+  static const String profilePhotos = 'profilePhotos'; // small avatar, see FIREBASE_SCHEMA
   static const String admins = 'admins';
   static const String cart = 'cart';
 

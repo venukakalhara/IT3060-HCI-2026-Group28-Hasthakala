@@ -5,6 +5,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/localization/tr.dart';
 import '../../../../core/shared_models/support_models.dart';
 import '../state/auth_provider.dart';
+import '../widgets/profile_avatar_widget.dart';
 
 // I01 Continue as - only when someone has more than one context
 class ContextSelectionScreen extends StatefulWidget {
@@ -70,17 +71,12 @@ class _ContextSelectionScreenState extends State<ContextSelectionScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        // same avatar as the profile screens, so the uploaded photo shows here too
                         Center(
-                          child: CircleAvatar(
+                          child: ProfileAvatarWidget(
+                            name: firstName,
                             radius: 34,
-                            backgroundColor: AppColors.secondaryLight,
-                            child: Text(
-                              firstName.isNotEmpty ? firstName[0].toUpperCase() : '?',
-                              style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.textPrimary),
-                            ),
+                            uid: auth.currentUser?.uid,
                           ),
                         ),
                         const SizedBox(height: 16),

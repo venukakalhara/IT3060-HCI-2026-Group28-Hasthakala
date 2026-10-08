@@ -135,6 +135,7 @@ class _FamilyAssistanceScreenState extends State<FamilyAssistanceScreen> {
                                   chipText: context.tr('status_active'),
                                   chipColor: AppColors.accent,
                                   scopes: g.scopes,
+                                  uid: g.supporterId,
                                   onTap: () => Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -274,6 +275,7 @@ class _PersonCard extends StatelessWidget {
   final Color chipColor;
   final SupportScopes scopes;
   final VoidCallback onTap;
+  final String? uid;
 
   const _PersonCard({
     required this.name,
@@ -282,6 +284,7 @@ class _PersonCard extends StatelessWidget {
     required this.chipColor,
     required this.scopes,
     required this.onTap,
+    this.uid,
   });
 
   @override
@@ -302,7 +305,7 @@ class _PersonCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                ProfileAvatarWidget(name: name, radius: 24),
+                ProfileAvatarWidget(name: name, radius: 24, uid: uid),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(

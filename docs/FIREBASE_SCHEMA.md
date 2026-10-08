@@ -49,6 +49,10 @@ Message: messageId, senderId, senderName, senderContext (`buyer` / `artisan` / `
 **reviews/{orderId}_{productId}** (ReviewModel)
 orderId, productId, artisanId, buyerId, buyerName, rating (1-5), comment, createdAt. Only after the order is delivered.
 
+**profilePhotos/{uid}** - small profile photo (I05)
+data (base64 text of a ~320px JPEG, max 200,000 characters), updatedAt. Only the owner writes it; anyone signed in reads it.
+Kept apart from users and artisanProfiles so nobody else's reads get bigger. `photoUrl` fields are unchanged.
+
 **supportGrants/{artisanUid}_{supporterUid}** (SupportGrantModel)
 artisanId, artisanName, supporterId, supporterName, relationship, phone, scopes (products, orders, communication),
 status (`active` / `revoked`), grantedAt, updatedAt, inviteCode.
@@ -63,7 +67,7 @@ createdAt, expiresAt, acceptedBy.
 users.role, users.isFamilyAssisted, users.bio, users.district, top-level carts, chats, categories, family_permissions.
 
 ## Rules
-`firestore.rules` (v2.0, phase 1). Proper rules for products, chats and reviews; orders keep the simple signed-in rule until phase 2:
+`firestore.rules` (v2.1, phase 1). Proper rules for products, chats and reviews; orders keep the simple signed-in rule until phase 2:
 - products: anyone signed in reads; the artisan (or a supporter with `products`) adds, edits, deletes; `artisanId` can't change.
 - orders (phase 2, written but commented out): only the buyer, the artisan or a supporter with `orders` reads; only the buyer creates (status `pending`); the artisan side changes status fields only; the buyer can cancel while `pending`; never deleted.
 - conversations + messages: only people in that order or product chat (or a supporter with `communication`); messages can't be edited or deleted.

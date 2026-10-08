@@ -83,6 +83,7 @@ class ProfileScreen extends StatelessWidget {
       header = _ArtisanHeader(uid: user.uid, fallbackName: name, photoUrl: user.photoUrl);
     } else if (auth.isSupporterContext && auth.activeGrant != null) {
       header = ProfileCoverHeader(
+        uid: user?.uid,
         name: name,
         photoUrl: user?.photoUrl,
         chip: ProfileChip(
@@ -94,6 +95,7 @@ class ProfileScreen extends StatelessWidget {
       );
     } else {
       header = ProfileCoverHeader(
+        uid: user?.uid,
         name: name,
         photoUrl: user?.photoUrl,
         chip: ProfileChip(icon: Icons.shopping_bag_outlined, label: context.tr('ctx_buyer')),
@@ -232,6 +234,7 @@ class _ArtisanHeaderState extends State<_ArtisanHeader> {
           uid: widget.uid,
           builder: (context, style) => ProfileCoverHeader(
           coverStyle: style,
+          uid: widget.uid,
           name: (p != null && p.displayName.isNotEmpty) ? p.displayName : widget.fallbackName,
           photoUrl: p?.photoUrl ?? widget.photoUrl,
           chip: ProfileChip(

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Hasthakala Firestore security rules - v2.0
+// Hasthakala Firestore security rules - v2.1
 // access is enforced here, not only by hiding buttons in the app.
 // Field names follow docs/FIREBASE_SCHEMA.md (locked).
 service cloud.firestore {
@@ -51,6 +51,18 @@ service cloud.firestore {
                         && !('artisanUid' in changed()))
                     || (isAdmin() && changed().hasOnly(['verified', 'updatedAt']));
       allow delete: if false;
+    }
+
+    // I05 profile photo - a small compressed avatar as base64 text
+    // (no Cloud Storage on the free plan, DEVIATIONS DV6).
+    // Anyone signed in can see it; only the owner can change or remove it.
+    match /profilePhotos/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isSelf(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 200000;
+      allow delete: if isSelf(uid);
     }
 
     // products / orders / conversations / reviews are further down,
