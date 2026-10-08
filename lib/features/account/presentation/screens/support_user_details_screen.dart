@@ -107,7 +107,7 @@ class _SupportUserDetailsScreenState extends State<SupportUserDetailsScreen> {
                     ),
                     child: Column(
                       children: [
-                        ProfileAvatarWidget(name: g.supporterName, radius: 34),
+                        ProfileAvatarWidget(name: g.supporterName, radius: 34, uid: g.supporterId),
                         const SizedBox(height: 10),
                         Text(g.supporterName,
                             textAlign: TextAlign.center,

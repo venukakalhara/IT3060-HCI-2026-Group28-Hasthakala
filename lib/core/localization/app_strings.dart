@@ -1214,6 +1214,37 @@ class AppStrings {
       'ta': 'தேவைப்பட்டால், குடும்ப உதவியில் "{feature}" அனுமதிக்குமாறு {artisan} இடம் கேளுங்கள்.',
     },
 
+    // ---- profile photo (I05) ----
+    'photo_add': {'en': 'Add Photo', 'si': 'ඡායාරූපයක් එක් කරන්න', 'ta': 'படம் சேர்'},
+    'photo_change': {'en': 'Change Photo', 'si': 'ඡායාරූපය වෙනස් කරන්න', 'ta': 'படத்தை மாற்று'},
+    'photo_hint': {
+      'en': 'Saved straight away. Shown on your profile.',
+      'si': 'වහාම සුරැකේ. ඔබේ පැතිකඩේ පෙන්වයි.',
+      'ta': 'உடனே சேமிக்கப்படும். உங்கள் சுயவிவரத்தில் காட்டப்படும்.',
+    },
+    'photo_sheet_title': {'en': 'Profile photo', 'si': 'පැතිකඩ ඡායාරූපය', 'ta': 'சுயவிவரப் படம்'},
+    'photo_gallery': {'en': 'Choose from gallery', 'si': 'ගැලරියෙන් තෝරන්න', 'ta': 'கேலரியிலிருந்து தேர்ந்தெடு'},
+    'photo_camera': {'en': 'Take a photo', 'si': 'ඡායාරූපයක් ගන්න', 'ta': 'படம் எடு'},
+    'photo_remove': {'en': 'Remove photo', 'si': 'ඡායාරූපය ඉවත් කරන්න', 'ta': 'படத்தை நீக்கு'},
+    'photo_uploading': {'en': 'Saving photo...', 'si': 'ඡායාරූපය සුරකිමින්...', 'ta': 'படம் சேமிக்கப்படுகிறது...'},
+    'photo_saved': {'en': 'Photo updated', 'si': 'ඡායාරූපය යාවත්කාලීන විය', 'ta': 'படம் புதுப்பிக்கப்பட்டது'},
+    'photo_removed': {'en': 'Photo removed', 'si': 'ඡායාරූපය ඉවත් කළා', 'ta': 'படம் நீக்கப்பட்டது'},
+    'photo_offline': {
+      'en': "You're offline. The photo will be saved when you're connected again.",
+      'si': 'ඔබ නොබැඳි ය. නැවත සම්බන්ධ වූ විට ඡායාරූපය සුරැකේ.',
+      'ta': 'நீங்கள் இணைப்பில் இல்லை. மீண்டும் இணைந்ததும் படம் சேமிக்கப்படும்.',
+    },
+    'photo_failed': {
+      'en': "We couldn't save the photo. Please try again.",
+      'si': 'ඡායාරූපය සුරැකීමට නොහැකි විය. නැවත උත්සාහ කරන්න.',
+      'ta': 'படத்தைச் சேமிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+    },
+    'photo_too_big': {
+      'en': 'That photo is too large. Please choose another one.',
+      'si': 'එම ඡායාරූපය විශාල වැඩියි. වෙනත් එකක් තෝරන්න.',
+      'ta': 'அந்தப் படம் மிகப் பெரியது. வேறொன்றைத் தேர்ந்தெடுக்கவும்.',
+    },
+
     // ---- bottom navigation ----
     'nav_home': {'en': 'Home', 'si': 'මුල් පිටුව', 'ta': 'முகப்பு'},
     'nav_search': {'en': 'Search', 'si': 'සොයන්න', 'ta': 'தேடல்'},

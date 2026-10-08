@@ -9,6 +9,7 @@ import '../state/auth_provider.dart';
 import '../widgets/craft_name.dart';
 import '../widgets/profile_avatar_widget.dart';
 import '../widgets/profile_form_parts.dart';
+import '../widgets/profile_photo_picker.dart';
 
 // I05 Complete Your Artisan Profile (first time) - creates artisanProfiles/{uid}
 class ArtisanProfileSetupScreen extends StatefulWidget {
@@ -96,12 +97,14 @@ class _ArtisanProfileSetupScreenState extends State<ArtisanProfileSetupScreen> {
                     FormSectionTitle(context.tr('sec_photo')),
                     Row(
                       children: [
-                        ProfileAvatarWidget(name: avatarName, radius: 30),
+                        ProfileAvatarWidget(
+                            name: avatarName, radius: 30, uid: auth.currentUser?.uid),
                         const SizedBox(width: 14),
-                        // photo upload comes later (DEVIATIONS DV6)
+                        // saved on its own, not by Save Profile (DEVIATIONS DV6)
                         Expanded(
-                          child: Text(context.tr('photo_soon'),
-                              style: const TextStyle(color: AppColors.textSecondary)),
+                          child: auth.currentUser == null
+                              ? const SizedBox.shrink()
+                              : ProfilePhotoButton(uid: auth.currentUser!.uid),
                         ),
                       ],
                     ),

@@ -13,6 +13,7 @@ class ProfileCoverHeader extends StatelessWidget {
   final List<Widget> details;
   final String? coverStyle;
   final Widget? coverAction; // e.g. the Change cover button, top right
+  final String? uid; // shows the saved profile photo when given
 
   const ProfileCoverHeader({
     super.key,
@@ -22,6 +23,7 @@ class ProfileCoverHeader extends StatelessWidget {
     this.details = const [],
     this.coverStyle,
     this.coverAction,
+    this.uid,
   });
 
   static const _coverHeight = 118.0;
@@ -75,6 +77,7 @@ class ProfileCoverHeader extends StatelessWidget {
                     name: name,
                     imageUrl: photoUrl,
                     radius: _avatarRadius,
+                    uid: uid,
                   ),
                 ),
               ],

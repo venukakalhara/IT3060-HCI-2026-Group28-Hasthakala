@@ -84,6 +84,7 @@ class _MyArtisanProfileScreenState extends State<MyArtisanProfileScreen> {
                         uid: _uid,
                         builder: (context, style) => ProfileCoverHeader(
                         coverStyle: style,
+                        uid: _uid,
                         coverAction: ChangeCoverButton(
                           onPressed: () => showCoverPicker(context, uid: _uid, current: style),
                         ),

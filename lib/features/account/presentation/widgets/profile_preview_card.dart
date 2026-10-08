@@ -49,6 +49,7 @@ class _ProfilePreviewCardState extends State<ProfilePreviewCard> {
                 uid: widget.artisanId,
                 builder: (context, style) => ProfileCoverHeader(
                 coverStyle: style,
+                uid: widget.artisanId,
                 name: p.displayName,
                 photoUrl: p.photoUrl,
                 chip: ProfileChip(
