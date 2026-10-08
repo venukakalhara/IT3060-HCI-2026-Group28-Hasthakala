@@ -1,0 +1,76 @@
+rules_version = '2';
+
+// Hasthakala Firestore security rules - v1.2
+// NFR3: access is enforced here, not only by hiding buttons in the app.
+// Field names follow docs/FIREBASE_SCHEMA.md (locked).
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    // Fields in this update that differ from the stored document.
+    function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    // ---------- I01 Entry/Auth: account documents (FINAL) ----------
+    // A user can only see/edit their own account. There is no role field to
+    // escalate: contexts come from artisanProfiles and supportGrants.
+    match /users/{uid} {
+      allow read: if isSelf(uid);
+      allow create: if isSelf(uid)
+        && request.resource.data.uid == uid
+        && request.resource.data.primaryPurpose in ['shop', 'sell'];
+      allow update: if isSelf(uid)
+        && !('uid' in changed()) && !('email' in changed());
+      allow delete: if false;
+
+      // I06 cart - only the owner.
+      match /cart/{productId} {
+        allow read, write: if isSelf(uid);
+      }
+    }
+
+    // ---------- Admins: created ONLY from the Firebase console ----------
+    match /admins/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+
+    // ---------- I05 Artisan profile (FINAL) ----------
+    // Any signed-in user can view (public profile). Only the artisan edits it,
+    // and never the 'verified' badge (FR4). Only an admin can set 'verified'.
+    match /artisanProfiles/{artisanUid} {
+      allow read: if signedIn();
+      allow create: if isSelf(artisanUid)
+        && request.resource.data.artisanUid == artisanUid
+        && request.resource.data.verified == false;
+      allow update: if (isSelf(artisanUid)
+                        && !('verified' in changed())
+                        && !('artisanUid' in changed()))
+                    || (isAdmin() && changed().hasOnly(['verified', 'updatedAt']));
+      allow delete: if false;
+    }
+
+    // ---------- TEMPORARY development rules - signed-in users only ----------
+    // MUST be replaced with owner/role/support-grant rules (v2) before
+    // functional testing. Tracked in docs/DECISIONS.md.
+    match /products/{doc=**}      { allow read, write: if signedIn(); }
+    match /orders/{doc=**}        { allow read, write: if signedIn(); }
+    match /conversations/{doc=**} { allow read, write: if signedIn(); }
+    match /reviews/{doc=**}       { allow read, write: if signedIn(); }
+
+    // ---------- I13 Family Assistance ----------
+    // Read: only the artisan or the supporter named in the grant
+    // (used at sign-in to find "Supporting <artisan>" contexts).
+    // Writes stay blocked until the I13 authorisation model is implemented.
+    match /supportGrants/{grantId} {
+      allow read: if signedIn()
+        && (resource.data.supporterId == request.auth.uid
+            || resource.data.artisanId == request.auth.uid);
+      allow write: if false;
+    }
+    // supportInvites: blocked until I13. Everything not listed is denied.
+  }
+}

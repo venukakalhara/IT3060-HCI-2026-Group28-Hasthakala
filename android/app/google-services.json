@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "830188241844",
+    "project_id": "hasthakala-group28",
+    "storage_bucket": "hasthakala-group28.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:830188241844:android:6738a7cc77edf8f285e8e1",
+        "android_client_info": {
+          "package_name": "lk.hasthakala.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA4zQN8vRffueQ4IWu_lznAFSi96Uf5Evw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

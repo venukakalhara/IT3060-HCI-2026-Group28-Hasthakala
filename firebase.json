@@ -1,0 +1,1 @@
+{"flutter":{"platforms":{"android":{"default":{"projectId":"hasthakala-group28","appId":"1:830188241844:android:6738a7cc77edf8f285e8e1","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"hasthakala-group28","configurations":{"android":"1:830188241844:android:6738a7cc77edf8f285e8e1"}}}}}, "firestore": { "rules": "firestore.rules" }}
