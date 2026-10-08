@@ -91,22 +91,25 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
+              // order number on its own line, status and date under it,
+              // so the number isn't squeezed into a thin column
+              Text(
+                context.tr('pur_order_ref', {'ref': OrderText.ref(order.id)}),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 6),
               Row(
                 children: [
-                  Flexible(
-                    child: Text(
-                      context.tr('pur_order_ref', {'ref': OrderText.ref(order.id)}),
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
                   OrderStatusChip(status: order.status),
-                  const Spacer(),
-                  Text(
-                    context.tr('pur_placed_on',
-                        {'date': OrderText.date(context, order.createdAt, 'd MMM')}),
-                    style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.tr('pur_placed_on',
+                          {'date': OrderText.date(context, order.createdAt, 'd MMM')}),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(
+                          fontSize: 12, color: AppColors.textMuted),
+                    ),
                   ),
                 ],
               ),

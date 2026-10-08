@@ -200,16 +200,19 @@ class _OrderCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Flexible(
+                // Expanded (not Flexible + Spacer) so the order number gets all
+                // the free space and isn't cut to "Order..." in Sinhala / Tamil
+                Expanded(
                   child: Text(
                     context.tr('pur_order_ref', {'ref': OrderText.ref(order.id)}),
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                 ),
                 const SizedBox(width: 8),
                 OrderStatusChip(status: order.status),
-                const Spacer(),
+                const SizedBox(width: 8),
                 Text(
                   placedToday
                       ? context.tr('pur_placed_today')
