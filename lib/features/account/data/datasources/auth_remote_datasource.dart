@@ -36,6 +36,12 @@ class AuthRemoteDataSource {
     );
   }
 
+  // false when the person closes the Google account picker
+  Future<bool> loginWithGoogle() async {
+    final credential = await _authService.signInWithGoogle();
+    return credential != null;
+  }
+
   // step 1 of sign up: only the Firebase Auth account (Create Account screen)
   Future<String> createAccount({
     required String email,
