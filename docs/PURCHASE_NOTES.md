@@ -27,3 +27,4 @@ Cart (I06), checkout (I07), my orders and tracking (I08) and the buyer side of o
 - My Orders is the Orders tab (Active / Completed). Order details has Tracking, Order info and Delivery tabs and updates when the artisan changes the status.
 - Order chat uses the order id as the chat id, so Member 3's artisan chat reads the same messages. Quick questions are saved as type "prompt".
 - Text in English, Sinhala and Tamil (lib/core/localization/purchase_strings.dart).
+- Chat: the first message creates the chat with all fields, later messages only change lastMessage and lastMessageAt (rules v2 allows only these two). Works when the artisan writes first too.

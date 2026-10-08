@@ -42,7 +42,12 @@ class BuyerChatRemoteDataSource {
     });
   }
 
-  // saves the message and the chat's last message together
+  // saves the message and the chat's last message together.
+  // firstMessage = no one has written in this chat yet, so we create the chat
+  // with all its fields. After that only lastMessage and lastMessageAt are
+  // changed, because the security rules (v2) only allow those two to change.
+  // This also covers the artisan writing first: their chat has no productId
+  // or createdAt, and adding them later would be refused.
   Future<void> sendOrderMessage({
     required OrderModel order,
     required String senderId,
@@ -60,19 +65,25 @@ class BuyerChatRemoteDataSource {
     final now = DateTime.now();
 
     final batch = _db.batch();
+    final lastMessage = {
+      'lastMessage': text,
+      'lastMessageAt': FirestoreConverters.toTimestamp(now),
+    };
     batch.set(
       conversationRef,
-      {
-        'conversationId': conversationId,
-        'type': 'order',
-        'orderId': order.id,
-        'productId': null,
-        'buyerId': order.buyerId,
-        'artisanId': order.artisanId,
-        'lastMessage': text,
-        'lastMessageAt': FirestoreConverters.toTimestamp(now),
-        if (firstMessage) 'createdAt': FirestoreConverters.toTimestamp(now),
-      },
+      firstMessage
+          ? {
+              'conversationId': conversationId,
+              'type': 'order',
+              'orderId': order.id,
+              'productId': null,
+              'buyerId': order.buyerId,
+              'artisanId': order.artisanId,
+              ...lastMessage,
+              'createdAt': FirestoreConverters.toTimestamp(now),
+            }
+          : lastMessage,
+      // merge, so it still works if the chat document is missing
       SetOptions(merge: true),
     );
     batch.set(
