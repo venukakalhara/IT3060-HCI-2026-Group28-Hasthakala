@@ -519,12 +519,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           subtitle: context.tr('pur_pay_bank_sub'),
           onTap: () => _checkout.setPaymentMethod(PaymentMethods.bankTransfer),
         ),
-        const SizedBox(height: 14),
-        InfoNote(
-          icon: Icons.lock_outline,
-          title: context.tr('pur_no_card_title'),
-          text: context.tr('pur_no_card_text'),
-        ),
       ],
     );
   }

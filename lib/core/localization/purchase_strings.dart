@@ -348,16 +348,6 @@ const purchaseStrings = <String, Map<String, String>>{
     'ta':
         'கைவினைஞர் ஆர்டரை உறுதிசெய்து, ஆர்டர் உரையாடலில் வங்கி விவரங்களைப் பகிர்வார்',
   },
-  'pur_no_card_title': {
-    'en': 'No card details needed',
-    'si': 'කාඩ්පත් විස්තර අවශ්‍ය නැත',
-    'ta': 'அட்டை விவரங்கள் தேவையில்லை',
-  },
-  'pur_no_card_text': {
-    'en': 'Hasthakala never asks for or stores card numbers.',
-    'si': 'හස්තකලා කිසිවිටෙක කාඩ්පත් අංක ඉල්ලන්නේවත් සුරකින්නේවත් නැත.',
-    'ta': 'ஹஸ்தகலா ஒருபோதும் அட்டை எண்களைக் கேட்பதோ சேமிப்பதோ இல்லை.',
-  },
   'pur_items_from': {
     'en': '{items} item(s) from {artisans} workshop(s)',
     'si': 'වැඩපොළ {artisans}කින් භාණ්ඩ {items}',
