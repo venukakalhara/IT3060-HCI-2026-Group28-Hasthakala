@@ -32,6 +32,8 @@ Things we agreed on while building the app, and why. Newest at the bottom.
 | I05a | 06 Oct | Changing the artisan name also updates the account name, products, support grants and pending invites | The old name was still showing on some screens |
 | I05b | 06 Oct | If a save gets no reply in 10 seconds we show "You're offline" | Firestore waits instead of failing when there's no connection |
 | I05c | 07 Oct | Artisans can pick a profile cover (2 photos or 4 colour covers from our palette) | Lets artisans make their profile a bit more their own while keeping the brand colours and readable text |
+| R2 | 08 Oct | Security rules v2 in two phases: products, chats and reviews now; orders once checkout saves artisanId and the artisan list is filtered | Checks must run on the server, not just by hiding buttons; phasing keeps everyone's current code working |
+| R2a | 08 Oct | Order and chat list queries must filter by artisanId / buyerId | Firestore refuses a whole query that could return documents the person can't read |
 | U1 | 06 Oct | Dark mode is a planned improvement, not done now | Colours are set per screen in everyone's code, so a half-done dark mode would look broken in testing |
 | B1 | 06 Oct | Animated splash, Hasthakala app icon and launch screen | Replace the default Flutter logo |
 | B2 | 06 Oct | Plus Jakarta Sans font included; Sinhala and Tamil use the phone's fonts | Font from the hi-fi; it has no Sinhala or Tamil letters |

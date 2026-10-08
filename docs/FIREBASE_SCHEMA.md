@@ -63,5 +63,10 @@ createdAt, expiresAt, acceptedBy.
 users.role, users.isFamilyAssisted, users.bio, users.district, top-level carts, chats, categories, family_permissions.
 
 ## Rules
-`firestore.rules` (v1.4). users, cart, artisanProfiles, admins, supportInvites and supportGrants are done.
-products, orders, conversations and reviews still have the simple signed-in rules and need proper ones before functional testing.
+`firestore.rules` (v2.0, phase 1). Proper rules for products, chats and reviews; orders keep the simple signed-in rule until phase 2:
+- products: anyone signed in reads; the artisan (or a supporter with `products`) adds, edits, deletes; `artisanId` can't change.
+- orders (phase 2, written but commented out): only the buyer, the artisan or a supporter with `orders` reads; only the buyer creates (status `pending`); the artisan side changes status fields only; the buyer can cancel while `pending`; never deleted.
+- conversations + messages: only people in that order or product chat (or a supporter with `communication`); messages can't be edited or deleted.
+- reviews: anyone signed in reads; only the buyer of a `delivered` order creates one, once.
+
+Before phase 2, checkout has to save `artisanId` (and `artisanName`) on every order. Rules are not filters: a list query has to ask only for what the person may read, e.g. orders `where('artisanId', isEqualTo: <acting artisan>)` or `where('buyerId', isEqualTo: <uid>)`. A query without the filter is refused as a whole.

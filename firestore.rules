@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Hasthakala Firestore security rules - v1.4
+// Hasthakala Firestore security rules - v2.0
 // access is enforced here, not only by hiding buttons in the app.
 // Field names follow docs/FIREBASE_SCHEMA.md (locked).
 service cloud.firestore {
@@ -53,13 +53,8 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // temporary development rules - signed-in users only
-    // must be replaced with owner/role/support-grant rules (v2) before
-    // functional testing. Tracked in docs/DECISIONS.md.
-    match /products/{doc=**}      { allow read, write: if signedIn(); }
-    match /orders/{doc=**}        { allow read, write: if signedIn(); }
-    match /conversations/{doc=**} { allow read, write: if signedIn(); }
-    match /reviews/{doc=**}       { allow read, write: if signedIn(); }
+    // products / orders / conversations / reviews are further down,
+    // after the I13 helpers they use (hasScope).
 
     // I13 Family Assistance
     // Authentication = who you are (always yourself).
@@ -151,6 +146,120 @@ service cloud.firestore {
         || (resource.data.supporterId == request.auth.uid && isValidAcceptance(grantId)));
       allow delete: if false;
     }
+    // ---- rules v2: products, orders, conversations, reviews ----
+    // owner = the artisan in artisanId. A supporter counts only with an
+    // active grant that has the right scope (hasScope above).
+
+    function canManageProducts(artisanId) {
+      return (isSelf(artisanId) && hasArtisanProfile(artisanId))
+        || hasScope(artisanId, 'products')
+        || isAdmin();
+    }
+    function canManageOrders(artisanId) {
+      return isSelf(artisanId) || hasScope(artisanId, 'orders') || isAdmin();
+    }
+
+    // I04 / I11 products - everyone signed in can browse, only the owner
+    // (or a products supporter) adds, edits or removes them.
+    match /products/{productId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && canManageProducts(request.resource.data.artisanId);
+      allow update: if signedIn() && canManageProducts(resource.data.artisanId)
+        && request.resource.data.artisanId == resource.data.artisanId;
+      allow delete: if signedIn() && canManageProducts(resource.data.artisanId);
+    }
+
+    // I07 / I08 / I12 orders - still the simple signed-in rule for now.
+    // Phase 2 (below, commented out) goes live once checkout saves artisanId
+    // on every order and the artisan orders list filters by artisanId.
+    match /orders/{orderId} {
+      allow read, write: if signedIn();
+    }
+
+    // I07 / I08 / I12 orders - private to the buyer, the artisan and an
+    // orders supporter. Never deleted, so there is always a record.
+    // match /orders/{orderId} {
+    //   allow read: if signedIn()
+    //     && (isSelf(resource.data.buyerId) || canManageOrders(resource.data.artisanId));
+    //   // only the buyer places an order, for themselves, and it starts pending
+    //   allow create: if signedIn()
+    //     && request.resource.data.buyerId == request.auth.uid
+    //     && request.resource.data.status == 'pending';
+    //   allow update: if signedIn() && (
+    //     // artisan or orders supporter moves the order along - items, total
+    //     // and buyer can't be changed
+    //     (canManageOrders(resource.data.artisanId)
+    //       && changed().hasOnly(['status', 'statusHistory', 'paymentStatus', 'deliveryNote',
+    //                             'cancelReason', 'updatedAt', 'updatedBy'])
+    //       && request.resource.data.status in ['pending', 'confirmed', 'preparing',
+    //                                           'shipped', 'delivered', 'cancelled'])
+    //     // buyer can cancel their own order while it is still pending
+    //     || (isSelf(resource.data.buyerId)
+    //       && resource.data.status == 'pending'
+    //       && request.resource.data.status == 'cancelled'
+    //       && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])));
+    //   allow delete: if false;
+    // }
+
+    // I09 chats. id = orderId for an order chat, productId_buyerId for a
+    // product question (docs/FIREBASE_SCHEMA.md). Works out who is in the
+    // chat from the order or product, so it works even before the
+    // conversation document exists.
+    function orderOf(cid) {
+      return get(/databases/$(database)/documents/orders/$(cid)).data;
+    }
+    function productArtisan(productId) {
+      return get(/databases/$(database)/documents/products/$(productId)).data.artisanId;
+    }
+    function inProductChat(cid) {
+      let parts = cid.split('_');
+      return parts.size() == 2
+        && exists(/databases/$(database)/documents/products/$(parts[0]))
+        && (isSelf(parts[1])
+            || isSelf(productArtisan(parts[0]))
+            || hasScope(productArtisan(parts[0]), 'communication'));
+    }
+    function canChat(cid) {
+      return signedIn() && (isAdmin()
+        || (exists(/databases/$(database)/documents/orders/$(cid))
+              ? (isSelf(orderOf(cid).buyerId)
+                 || isSelf(orderOf(cid).artisanId)
+                 || hasScope(orderOf(cid).artisanId, 'communication'))
+              : inProductChat(cid)));
+    }
+
+    match /conversations/{cid} {
+      allow read, create: if canChat(cid);
+      allow update: if canChat(cid) && changed().hasOnly(['lastMessage', 'lastMessageAt']);
+      allow delete: if false;
+
+      // messages are kept as they were sent - no editing or deleting
+      match /messages/{messageId} {
+        allow read: if canChat(cid);
+        allow create: if canChat(cid)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 2000;
+        allow update, delete: if false;
+      }
+    }
+
+    // reviews - public to read. Only the buyer of a delivered order, once
+    // (the id is orderId_productId, so a second review would be an update).
+    match /reviews/{reviewId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && reviewId == request.resource.data.orderId + '_' + request.resource.data.productId
+        && request.resource.data.buyerId == request.auth.uid
+        && orderOf(request.resource.data.orderId).buyerId == request.auth.uid
+        && orderOf(request.resource.data.orderId).status == 'delivered'
+        && orderOf(request.resource.data.orderId).artisanId == request.resource.data.artisanId
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update, delete: if false;
+    }
+
     // Everything not listed above is denied by default.
   }
 }
