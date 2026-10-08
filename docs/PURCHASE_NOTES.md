@@ -6,7 +6,7 @@ Cart (I06), checkout (I07), my orders and tracking (I08) and the buyer side of o
 
 | # | Screen | Hi-fi | App | Why | Effect |
 |---|---|---|---|---|---|
-| P1 | I07 Payment | Card and Koko / Mintpay | Cash on delivery and bank transfer | Only these two are in the schema and we have no payment gateway | No card form |
+| P1 | I07 Payment | Card and Koko / Mintpay | All four are shown like the hi-fi. Card and Koko / Mintpay have a "Coming soon" badge and open a coming soon page with a "Pay with Cash on Delivery" button. Cash on delivery and bank transfer work | Only these two are in the schema and we have no payment gateway | No card form, card numbers are never asked |
 | P2 | I07 Processing / failed | "Securing your payment", "Payment could not be completed", "Retry with another card" | "Placing your order" and "Order could not be placed" (no internet or item sold out), with Try again / Return to cart | No card payment, so a card can't fail | Same screens, different reasons |
 | P3 | I07 | One order number for two artisans | One order per artisan, all listed on Order placed | Decision S2, each artisan sees only their own order | Buyer can get two order numbers |
 | P4 | I06 / I07 | Rs. 450 delivery | Rs. 450 once per checkout, split between the orders (225 + 225 for two artisans) | Keeps the hi-fi total and each order's total right | Nothing changes on screen |
@@ -28,3 +28,4 @@ Cart (I06), checkout (I07), my orders and tracking (I08) and the buyer side of o
 - Order chat uses the order id as the chat id, so Member 3's artisan chat reads the same messages. Quick questions are saved as type "prompt".
 - Text in English, Sinhala and Tamil (lib/core/localization/purchase_strings.dart).
 - Chat: the first message creates the chat with all fields, later messages only change lastMessage and lastMessageAt (rules v2 allows only these two). Works when the artisan writes first too.
+- Payment step shows Card and Koko / Mintpay as "Coming soon" (like HF6). Tapping one opens a coming soon page, its "Pay with Cash on Delivery" button picks cash on delivery and goes back.

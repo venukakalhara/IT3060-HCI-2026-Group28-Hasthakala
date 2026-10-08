@@ -15,6 +15,7 @@ import '../widgets/order_text.dart';
 import '../widgets/purchase_parts.dart';
 import 'order_failed_screen.dart';
 import 'order_placed_screen.dart';
+import 'payment_coming_soon_screen.dart';
 
 /// Assigned to: DISSANAYAKE D. M. S. D.
 /// Branch: feature/buyer-purchase
@@ -483,6 +484,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ],
         ),
         const SizedBox(height: 10),
+        // card and Koko are shown like the hi-fi but can't be picked yet,
+        // tapping them opens the coming soon page
+        _PaymentOption(
+          selected: false,
+          comingSoon: true,
+          icon: Icons.credit_card,
+          title: context.tr('pur_pay_card'),
+          subtitle: context.tr('pur_pay_card_sub'),
+          onTap: () => _openComingSoon(koko: false),
+        ),
+        const SizedBox(height: 10),
+        _PaymentOption(
+          selected: false,
+          comingSoon: true,
+          icon: Icons.calendar_month_outlined,
+          title: context.tr('pur_pay_koko'),
+          subtitle: context.tr('pur_pay_koko_sub'),
+          onTap: () => _openComingSoon(koko: true),
+        ),
+        const SizedBox(height: 10),
         _PaymentOption(
           selected: method == PaymentMethods.cashOnDelivery,
           icon: Icons.payments_outlined,
@@ -506,6 +527,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         ),
       ],
     );
+  }
+
+  Future<void> _openComingSoon({required bool koko}) async {
+    final useCod = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(builder: (_) => PaymentComingSoonScreen(koko: koko)),
+    );
+    if (!mounted) return;
+    if (useCod == true) {
+      _checkout.setPaymentMethod(PaymentMethods.cashOnDelivery);
+    }
   }
 
   // ---- step 4: confirm and place (HF7) ----
@@ -769,6 +800,8 @@ class _PaymentOption extends StatelessWidget {
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  // greyed out with a "Coming soon" badge, can't be selected
+  final bool comingSoon;
 
   const _PaymentOption({
     required this.selected,
@@ -776,6 +809,7 @@ class _PaymentOption extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.comingSoon = false,
   });
 
   @override
@@ -789,9 +823,11 @@ class _PaymentOption extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: selected
-                ? AppColors.primary.withValues(alpha: 0.05)
-                : AppColors.surface,
+            color: comingSoon
+                ? AppColors.background
+                : selected
+                    ? AppColors.primary.withValues(alpha: 0.05)
+                    : AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: selected ? AppColors.primary : AppColors.border,
@@ -801,7 +837,11 @@ class _PaymentOption extends StatelessWidget {
           child: Row(
             children: [
               Icon(
-                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+                comingSoon
+                    ? Icons.lock_clock_outlined
+                    : selected
+                        ? Icons.radio_button_checked
+                        : Icons.radio_button_unchecked,
                 color: selected ? AppColors.primary : AppColors.textMuted,
               ),
               const SizedBox(width: 12),
@@ -810,17 +850,35 @@ class _PaymentOption extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(title,
-                        style: const TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w700)),
+                        style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: comingSoon
+                                ? AppColors.textSecondary
+                                : AppColors.textPrimary)),
                     const SizedBox(height: 2),
                     Text(subtitle,
-                        style: const TextStyle(
-                            fontSize: 12.5, color: AppColors.textSecondary)),
+                        style: TextStyle(
+                            fontSize: 12.5,
+                            color: comingSoon
+                                ? AppColors.textMuted
+                                : AppColors.textSecondary)),
+                    if (comingSoon) ...[
+                      const SizedBox(height: 6),
+                      SmallBadge(
+                        text: context.tr('pur_coming_soon'),
+                        color: AppColors.secondaryDark,
+                        icon: Icons.schedule,
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(width: 8),
-              Icon(icon, color: AppColors.textSecondary),
+              Icon(icon,
+                  color: comingSoon
+                      ? AppColors.textMuted
+                      : AppColors.textSecondary),
             ],
           ),
         ),

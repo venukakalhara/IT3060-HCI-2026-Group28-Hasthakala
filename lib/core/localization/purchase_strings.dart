@@ -956,4 +956,72 @@ const purchaseStrings = <String, Map<String, String>>{
     'si': 'පණිවිඩය යැවිය නොහැකි විය. නැවත උත්සාහ කරන්න.',
     'ta': 'செய்தியை அனுப்ப முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
   },
+
+  // payment options that are not ready yet (HF6)
+  'pur_pay_card': {
+    'en': 'Card (Visa, Mastercard, Amex)',
+    'si': 'කාඩ්පත (Visa, Mastercard, Amex)',
+    'ta': 'அட்டை (Visa, Mastercard, Amex)',
+  },
+  'pur_pay_card_sub': {
+    'en': 'Pay online with a debit or credit card',
+    'si': 'ඩෙබිට් හෝ ක්‍රෙඩිට් කාඩ්පතකින් ඔන්ලයින් ගෙවන්න',
+    'ta': 'டெபிட் அல்லது கிரெடிட் அட்டை மூலம் ஆன்லைனில் செலுத்துங்கள்',
+  },
+  'pur_pay_koko': {
+    'en': 'Koko / Mintpay',
+    'si': 'Koko / Mintpay',
+    'ta': 'Koko / Mintpay',
+  },
+  'pur_pay_koko_sub': {
+    'en': 'Pay in 3 parts',
+    'si': 'කොටස් 3කින් ගෙවන්න',
+    'ta': '3 தவணைகளில் செலுத்துங்கள்',
+  },
+  'pur_coming_soon': {
+    'en': 'Coming soon',
+    'si': 'ළඟදීම',
+    'ta': 'விரைவில்',
+  },
+  'pur_soon_image': {
+    'en': 'Two payment cards with a clock',
+    'si': 'ඔරලෝසුවක් සමඟ ගෙවීම් කාඩ්පත් දෙකක්',
+    'ta': 'கடிகாரத்துடன் இரண்டு கட்டண அட்டைகள்',
+  },
+  'pur_soon_title': {
+    'en': '{method} is coming soon',
+    'si': '{method} ළඟදීම ලැබේ',
+    'ta': '{method} விரைவில் வரும்',
+  },
+  'pur_soon_text': {
+    'en':
+        'For now you can pay with Cash on Delivery or Bank Transfer. Your cart and delivery details are kept.',
+    'si':
+        'දැනට භාණ්ඩ ලැබුණු විට මුදල් ගෙවීම හෝ බැංකු මාරුව මගින් ගෙවිය හැක. ඔබේ කරත්තය සහ බෙදාහැරීමේ විස්තර ඉතිරිව ඇත.',
+    'ta':
+        'இப்போதைக்கு பொருள் கிடைத்ததும் பணம் அல்லது வங்கிப் பரிமாற்றம் மூலம் செலுத்தலாம். உங்கள் கூடை மற்றும் விநியோக விவரங்கள் அப்படியே இருக்கும்.',
+  },
+  'pur_soon_why_title': {
+    'en': 'Why not yet?',
+    'si': 'තවම නැත්තේ ඇයි?',
+    'ta': 'ஏன் இன்னும் இல்லை?',
+  },
+  'pur_soon_why_text': {
+    'en':
+        'Hasthakala will only take card payments after a secure payment partner is added. Until then we never ask for card numbers.',
+    'si':
+        'ආරක්ෂිත ගෙවීම් සහකරුවෙකු එක් කළ පසු පමණක් හස්තකලා කාඩ්පත් ගෙවීම් භාර ගනී. එතෙක් අපි කිසිවිටෙක කාඩ්පත් අංක ඉල්ලන්නේ නැත.',
+    'ta':
+        'பாதுகாப்பான கட்டண கூட்டாளர் சேர்க்கப்பட்ட பிறகே ஹஸ்தகலா அட்டை கட்டணங்களை ஏற்கும். அதுவரை நாங்கள் அட்டை எண்களைக் கேட்பதில்லை.',
+  },
+  'pur_soon_use_cod': {
+    'en': 'Pay with Cash on Delivery',
+    'si': 'භාණ්ඩ ලැබුණු විට මුදල් ගෙවන්න',
+    'ta': 'பொருள் கிடைத்ததும் பணம் செலுத்துங்கள்',
+  },
+  'pur_soon_other': {
+    'en': 'Choose another method',
+    'si': 'වෙනත් ක්‍රමයක් තෝරන්න',
+    'ta': 'வேறு முறையைத் தேர்ந்தெடுக்கவும்',
+  },
 };
