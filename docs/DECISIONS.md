@@ -13,6 +13,7 @@ Things we agreed on while building the app, and why. Newest at the bottom.
 | D1 | 06 Oct | No role field. A person can be a buyer, an artisan (if they have an artisan profile) and a supporter (if an artisan invited them). "Continue as" only shows when someone has more than one | The hi-fi shows the same person as buyer and artisan, and we didn't want to ask every time someone signs in |
 | D2 | 06 Oct | English, Sinhala and Tamil for all fixed text (`context.tr('key')`), saved on the phone and in `users.preferredLanguage` | Language was a must for the group; Milestone 01 showed language barriers |
 | D3 | 06 Oct | Email/password only for now (no Google, biometrics or passkey) | Time, and Google sign in needs setup on every developer's laptop |
+| D3a | 01-09 Oct | Google sign in added (google_sign_in + Firebase); fingerprint and passkey shown as "Soon" | Matches the hi-fi more closely; Google needs each laptop's SHA-1 in Firebase |
 | D4 | 06 Oct | Family support invites use the phone number form from the hi-fi plus a 6-digit code | We have no SMS service, and a typed phone number alone doesn't prove who someone is |
 | D5 | 06 Oct | Order status: pending, confirmed, preparing, shipped, delivered, cancelled | Matches the labels in the hi-fi |
 | S1 | 06 Oct | Firestore field names are fixed (docs/FIREBASE_SCHEMA.md) - only new optional fields can be added | Four people work on the same data |

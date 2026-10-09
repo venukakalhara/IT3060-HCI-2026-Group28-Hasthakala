@@ -1,68 +1,209 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/shared_models/order_model.dart';
-import '../../../../core/widgets/custom_button.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import 'order_status_badge.dart';
 
-class OrderActionBottomSheet extends StatelessWidget {
+class OrderActionBottomSheet extends StatefulWidget {
   final OrderModel order;
-  final ValueChanged<OrderStatus> onStatusChanged;
+  final Function(OrderStatus newStatus, String? reason) onStatusChanged;
 
   const OrderActionBottomSheet({
-    Key? key,
+    super.key,
     required this.order,
     required this.onStatusChanged,
-  }) : super(key: key);
+  });
+
+  @override
+  State<OrderActionBottomSheet> createState() => _OrderActionBottomSheetState();
+}
+
+class _OrderActionBottomSheetState extends State<OrderActionBottomSheet> {
+  late OrderStatus _selectedStatus;
+  final TextEditingController _reasonController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedStatus = widget.order.status;
+  }
+
+  @override
+  void dispose() {
+    _reasonController.dispose();
+    super.dispose();
+  }
+
+  // Orders only move forward. Delivered and cancelled orders are final,
+  // and a shipped order can no longer be cancelled.
+  bool _canMoveTo(OrderStatus to) {
+    final from = widget.order.status;
+    if (to == from) return true;
+    if (from == OrderStatus.delivered || from == OrderStatus.cancelled) return false;
+    if (to == OrderStatus.cancelled) return from != OrderStatus.shipped;
+    return to.index > from.index;
+  }
+
+  String _statusDescription(OrderStatus status) {
+    switch (status) {
+      case OrderStatus.pending:
+        return 'Order received from buyer, awaiting artisan acceptance.';
+      case OrderStatus.confirmed:
+        return 'Craft materials confirmed and workshop queued.';
+      case OrderStatus.preparing:
+        return 'Handcrafted item is currently being made or packed.';
+      case OrderStatus.shipped:
+        return 'Dispatched with delivery partner / postal service.';
+      case OrderStatus.delivered:
+        return 'Craft successfully delivered to buyer.';
+      case OrderStatus.cancelled:
+        return 'Order cancelled or unable to fulfill.';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
       decoration: const BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Update Order #${order.id}',
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 12),
-          const Text('Customer Shipping Details:',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-          Text(order.shippingAddress, style: const TextStyle(color: AppColors.textSecondary)),
-          Text('Tel: ${order.contactPhone}', style: const TextStyle(color: AppColors.textSecondary)),
-          const SizedBox(height: 16),
-          const Text('Set Craft Progress:',
-              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: OrderStatus.values.map((status) {
-              final isCurrent = order.status == status;
-              return ChoiceChip(
-                label: Text(status.name.toUpperCase()),
-                selected: isCurrent,
-                selectedColor: AppColors.primary,
-                labelStyle: TextStyle(color: isCurrent ? Colors.white : AppColors.textPrimary),
-                onSelected: (selected) {
-                  if (selected) {
-                    onStatusChanged(status);
-                    Navigator.pop(context);
-                  }
-                },
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 16),
-          CustomButton(
-            text: 'Close',
-            isOutlined: true,
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Manage Order #${widget.order.id.length > 8 ? widget.order.id.substring(0, 8) : widget.order.id}',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Total: ${CurrencyFormatter.formatLKR(widget.order.totalAmountLkr)}',
+                      style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+                OrderStatusBadge(status: widget.order.status),
+              ],
+            ),
+            const Divider(height: 24),
+            const Text(
+              'Customer & Shipping Address:',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${widget.order.recipientName.isNotEmpty ? widget.order.recipientName : widget.order.buyerName} • ${widget.order.contactPhone}',
+              style: const TextStyle(fontSize: 13, color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+            ),
+            Text(
+              '${widget.order.shippingAddress}${widget.order.city.isNotEmpty ? ', ${widget.order.city}' : ''}${widget.order.district.isNotEmpty ? ', ${widget.order.district}' : ''}',
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Update Fulfillment Status:',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: OrderStatus.values.map((status) {
+                final isSelected = _selectedStatus == status;
+                return ChoiceChip(
+                  label: Text(
+                    status.name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? AppColors.onPrimary : AppColors.textPrimary,
+                    ),
+                  ),
+                  selected: isSelected,
+                  selectedColor: status == OrderStatus.cancelled ? AppColors.error : AppColors.primary,
+                  backgroundColor: AppColors.background,
+                  side: BorderSide(
+                    color: isSelected
+                        ? (status == OrderStatus.cancelled ? AppColors.error : AppColors.primary)
+                        : AppColors.border,
+                  ),
+                  onSelected: _canMoveTo(status)
+                      ? (selected) {
+                          if (selected) {
+                            setState(() => _selectedStatus = status);
+                          }
+                        }
+                      : null,
+                );
+              }).toList(),
+            ),
+            if (widget.order.status == OrderStatus.delivered ||
+                widget.order.status == OrderStatus.cancelled) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'This order is closed, so its status can no longer change.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              _statusDescription(_selectedStatus),
+              style: const TextStyle(fontSize: 12, color: AppColors.textSecondary, fontStyle: FontStyle.italic),
+            ),
+            if (_selectedStatus == OrderStatus.cancelled) ...[
+              const SizedBox(height: 14),
+              TextField(
+                controller: _reasonController,
+                decoration: const InputDecoration(
+                  labelText: 'Reason for cancellation (optional)',
+                  hintText: 'e.g. Out of specialized raw materials',
+                ),
+              ),
+            ],
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _selectedStatus == widget.order.status
+                        ? null
+                        : () {
+                            widget.onStatusChanged(
+                              _selectedStatus,
+                              _reasonController.text.trim().isNotEmpty
+                                  ? _reasonController.text.trim()
+                                  : null,
+                            );
+                            Navigator.pop(context);
+                          },
+                    child: const Text('Save Status'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
