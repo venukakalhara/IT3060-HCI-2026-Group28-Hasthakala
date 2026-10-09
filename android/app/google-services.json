@@ -12,7 +12,20 @@
           "package_name": "lk.hasthakala.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "830188241844-maluuoolm54pabpfqvonub855pd97100.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "lk.hasthakala.app",
+            "certificate_hash": "75179ebd831b259f3979b3e8e7edbfcfbc3de9c6"
+          }
+        },
+        {
+          "client_id": "830188241844-mq3jng5k6e4ta637bikjk95dq15j8ovo.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyA4zQN8vRffueQ4IWu_lznAFSi96Uf5Evw"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "830188241844-mq3jng5k6e4ta637bikjk95dq15j8ovo.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

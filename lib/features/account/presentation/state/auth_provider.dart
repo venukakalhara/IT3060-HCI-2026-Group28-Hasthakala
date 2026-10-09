@@ -178,6 +178,26 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // ---------- Actions ----------
+  // Google sign in. A new Google user has no users/{uid} yet, so the auth
+  // listener sends them to "How will you start" like a new email account.
+  Future<bool> loginWithGoogle() async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+    try {
+      return await _authDataSource.loginWithGoogle();
+    } on AuthException catch (e) {
+      _errorMessage = e.message;
+      return false;
+    } catch (_) {
+      _errorMessage = 'Google sign in failed. Please try again.';
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> login(String email, String password) async {
     _isLoading = true;
     _errorMessage = null;

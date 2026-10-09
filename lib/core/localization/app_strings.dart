@@ -1245,6 +1245,35 @@ class AppStrings {
       'ta': 'அந்தப் படம் மிகப் பெரியது. வேறொன்றைத் தேர்ந்தெடுக்கவும்.',
     },
 
+    // ---- other sign in options (I01) ----
+    'or_continue_with': {'en': 'or continue with', 'si': 'නැතහොත් මෙයින් ඉදිරියට', 'ta': 'அல்லது இதன் மூலம் தொடரவும்'},
+    'google_continue': {'en': 'Continue with Google', 'si': 'Google සමඟ ඉදිරියට', 'ta': 'Google மூலம் தொடரவும்'},
+    'biometric_sign_in': {'en': 'Fingerprint', 'si': 'ඇඟිලි සලකුණ', 'ta': 'கைரேகை'},
+    'passkey_sign_in': {'en': 'Passkey', 'si': 'පාස්කී', 'ta': 'பாஸ்கீ'},
+    'soon_tag': {'en': 'Soon', 'si': 'ළඟදීම', 'ta': 'விரைவில்'},
+    'coming_soon_title': {'en': 'Coming soon', 'si': 'ළඟදීම පැමිණේ', 'ta': 'விரைவில் வருகிறது'},
+    'coming_soon_bio': {
+      'en': "Fingerprint sign in isn't available yet. Please sign in with your email or Google for now.",
+      'si': 'ඇඟිලි සලකුණෙන් පුරනය වීම තවම නොමැත. දැනට ඔබේ ඊමේල් හෝ Google මගින් පුරනය වන්න.',
+      'ta': 'கைரேகை மூலம் உள்நுழைவு இன்னும் கிடைக்கவில்லை. இப்போதைக்கு உங்கள் மின்னஞ்சல் அல்லது Google மூலம் உள்நுழையவும்.',
+    },
+    'coming_soon_passkey': {
+      'en': "Passkey sign in isn't available yet. Please sign in with your email or Google for now.",
+      'si': 'පාස්කී මගින් පුරනය වීම තවම නොමැත. දැනට ඔබේ ඊමේල් හෝ Google මගින් පුරනය වන්න.',
+      'ta': 'பாஸ்கீ மூலம் உள்நுழைவு இன்னும் கிடைக்கவில்லை. இப்போதைக்கு உங்கள் மின்னஞ்சல் அல்லது Google மூலம் உள்நுழையவும்.',
+    },
+    'ok_got_it': {'en': 'OK, got it', 'si': 'හරි, තේරුණා', 'ta': 'சரி, புரிந்தது'},
+    'err_google_failed': {
+      'en': 'Google sign in failed. Please try again.',
+      'si': 'Google මගින් පුරනය වීම අසාර්ථක විය. නැවත උත්සාහ කරන්න.',
+      'ta': 'Google உள்நுழைவு தோல்வியடைந்தது. மீண்டும் முயற்சிக்கவும்.',
+    },
+    'err_other_provider': {
+      'en': 'This email already has an account. Sign in with your email and password.',
+      'si': 'මෙම ඊමේල් සඳහා දැනටමත් ගිණුමක් ඇත. ඔබේ ඊමේල් සහ මුරපදයෙන් පුරනය වන්න.',
+      'ta': 'இந்த மின்னஞ்சலுக்கு ஏற்கனவே கணக்கு உள்ளது. உங்கள் மின்னஞ்சல் மற்றும் கடவுச்சொல் மூலம் உள்நுழையவும்.',
+    },
+
     // ---- bottom navigation ----
     'nav_home': {'en': 'Home', 'si': 'මුල් පිටුව', 'ta': 'முகப்பு'},
     'nav_search': {'en': 'Search', 'si': 'සොයන්න', 'ta': 'தேடல்'},
@@ -1256,6 +1285,8 @@ class AppStrings {
   // English messages from validators / Firebase - key, so they can be shown
   // in the chosen language without changing where they come from
   static const Map<String, String> messageKeys = {
+    'Google sign in failed. Please try again.': 'err_google_failed',
+    'This email already has an account. Sign in with your email and password.': 'err_other_provider',
     'Enter the 6-digit code': 'err_code',
     'Manage products': 'perm_products',
     'Manage orders': 'perm_orders',

@@ -112,6 +112,38 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 8),
               ElevatedButton(onPressed: () => _signIn(auth), child: Text(context.tr('sign_in'))),
               const SizedBox(height: 20),
+              _OrDivider(context.tr('or_continue_with')),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () {
+                  auth.clearError();
+                  auth.loginWithGoogle();
+                },
+                icon: const Icon(Icons.g_mobiledata_rounded, size: 30),
+                label: Text(context.tr('google_continue')),
+              ),
+              const SizedBox(height: 10),
+              // shown as in the hi-fi, but not built yet (DEVIATIONS DV2)
+              Row(
+                children: [
+                  Expanded(
+                    child: _SoonButton(
+                      icon: Icons.fingerprint_rounded,
+                      label: context.tr('biometric_sign_in'),
+                      message: context.tr('coming_soon_bio'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: _SoonButton(
+                      icon: Icons.key_rounded,
+                      label: context.tr('passkey_sign_in'),
+                      message: context.tr('coming_soon_passkey'),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               Wrap(
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
@@ -130,6 +162,102 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  final String text;
+  const _OrDivider(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(child: Divider(color: AppColors.border)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(text, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+        ),
+        const Expanded(child: Divider(color: AppColors.border)),
+      ],
+    );
+  }
+}
+
+// sign in options from the hi-fi that aren't ready yet - tapping says so
+class _SoonButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String message;
+
+  const _SoonButton({required this.icon, required this.label, required this.message});
+
+  void _showSoon(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        icon: Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: AppColors.secondary.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppColors.secondaryDark, size: 28),
+        ),
+        title: Text(ctx.tr('coming_soon_title'), textAlign: TextAlign.center),
+        content: Text(message,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: AppColors.textSecondary, height: 1.4)),
+        actionsPadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(ctx.tr('ok_got_it')),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      onPressed: () => _showSoon(context),
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.textSecondary,
+        side: const BorderSide(color: AppColors.border),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          ),
+          const SizedBox(width: 6),
+          // small tag so it's clear before tapping
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(context.tr('soon_tag'),
+                style: const TextStyle(
+                    fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.secondaryDark)),
+          ),
+        ],
       ),
     );
   }
