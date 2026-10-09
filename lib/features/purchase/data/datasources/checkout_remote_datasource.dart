@@ -98,17 +98,6 @@ class CheckoutRemoteDataSource {
     return orders;
   }
 
-  // only for the old tracking screen, remove it with that screen
-  Stream<OrderModel?> streamOrder(String orderId) {
-    return _db
-        .collection(FirestoreCollections.orders)
-        .doc(orderId)
-        .snapshots()
-        .map((doc) => doc.exists && doc.data() != null
-            ? OrderModel.fromMap(doc.data()!, doc.id)
-            : null);
-  }
-
   // when "save as my delivery address" is ticked
   Future<void> saveDefaultAddress(String uid, DeliveryDetails address) {
     return _db.collection(FirestoreCollections.users).doc(uid).update({

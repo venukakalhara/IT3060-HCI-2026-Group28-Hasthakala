@@ -5,6 +5,7 @@ import '../../../../config/routes/app_routes.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/shared_models/product_model.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../purchase/data/buy_now_request.dart';
 import '../../../purchase/presentation/state/cart_provider.dart';
 import 'discovery_cart_action.dart';
 
@@ -70,12 +71,10 @@ class _ProductPurchaseBarState extends State<ProductPurchaseBar> {
               child: ElevatedButton(
                   onPressed: !available
                       ? null
-                      : () {
-                          if (addDiscoveryProduct(context, product,
-                              quantity: quantity, showSuccess: false)) {
-                            Navigator.pushNamed(context, AppRoutes.checkout);
-                          }
-                        },
+                      // buy now opens checkout with just this item, cart is not touched
+                      : () => Navigator.pushNamed(context, AppRoutes.checkout,
+                          arguments:
+                              BuyNowRequest(product: product, quantity: quantity)),
                   child: Text(context.tr('discovery_buy_now')))),
         ]),
       ]),
