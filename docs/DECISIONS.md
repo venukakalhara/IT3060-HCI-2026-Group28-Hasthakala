@@ -35,6 +35,7 @@ Things we agreed on while building the app, and why. Newest at the bottom.
 | I05c | 07 Oct | Artisans can pick a profile cover (2 photos or 4 colour covers from our palette) | Lets artisans make their profile a bit more their own while keeping the brand colours and readable text |
 | R2 | 08 Oct | Security rules v2 in two phases: products, chats and reviews now; orders once checkout saves artisanId and the artisan list is filtered | Checks must run on the server, not just by hiding buttons; phasing keeps everyone's current code working |
 | R2a | 08 Oct | redesidn Order and chat list queries must filter by artisanId / buyerId | Firestore refuses a whole query that could return documents the person can't read |
+| R2b | 09 Oct | Orders rules (phase 2) on; chat lists readable by the buyer/artisan named on the chat | Checkout saves artisanId and both order lists filter by buyerId/artisanId |
 | I05d | 08 Oct |   REFIXED Profile photo saved as a small base64 avatar in profilePhotos/{uid}, outside the profile forms | Free (no Blaze), changes no existing field or form logic; low resolution is fine for an avatar only |
 | U1 | 06 Oct | Dark mode is a planned improvement, not done now | Colours are set per screen in everyone's code, so a half-done dark mode would look broken in testing |
 | B1 | 06 Oct | Animated splash, Hasthakala app icon and launch screen | Replace the default Flutter logo |

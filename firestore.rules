@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Hasthakala Firestore security rules - v2.1
+// Hasthakala Firestore security rules - v2.2
 // access is enforced here, not only by hiding buttons in the app.
 // Field names follow docs/FIREBASE_SCHEMA.md (locked).
 service cloud.firestore {
@@ -181,37 +181,30 @@ service cloud.firestore {
       allow delete: if signedIn() && canManageProducts(resource.data.artisanId);
     }
 
-    // I07 / I08 / I12 orders - still the simple signed-in rule for now.
-    // Phase 2 (below, commented out) goes live once checkout saves artisanId
-    // on every order and the artisan orders list filters by artisanId.
-    match /orders/{orderId} {
-      allow read, write: if signedIn();
-    }
-
     // I07 / I08 / I12 orders - private to the buyer, the artisan and an
     // orders supporter. Never deleted, so there is always a record.
-    // match /orders/{orderId} {
-    //   allow read: if signedIn()
-    //     && (isSelf(resource.data.buyerId) || canManageOrders(resource.data.artisanId));
-    //   // only the buyer places an order, for themselves, and it starts pending
-    //   allow create: if signedIn()
-    //     && request.resource.data.buyerId == request.auth.uid
-    //     && request.resource.data.status == 'pending';
-    //   allow update: if signedIn() && (
-    //     // artisan or orders supporter moves the order along - items, total
-    //     // and buyer can't be changed
-    //     (canManageOrders(resource.data.artisanId)
-    //       && changed().hasOnly(['status', 'statusHistory', 'paymentStatus', 'deliveryNote',
-    //                             'cancelReason', 'updatedAt', 'updatedBy'])
-    //       && request.resource.data.status in ['pending', 'confirmed', 'preparing',
-    //                                           'shipped', 'delivered', 'cancelled'])
-    //     // buyer can cancel their own order while it is still pending
-    //     || (isSelf(resource.data.buyerId)
-    //       && resource.data.status == 'pending'
-    //       && request.resource.data.status == 'cancelled'
-    //       && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])));
-    //   allow delete: if false;
-    // }
+    match /orders/{orderId} {
+      allow read: if signedIn()
+        && (isSelf(resource.data.buyerId) || canManageOrders(resource.data.artisanId));
+      // only the buyer places an order, for themselves, and it starts pending
+      allow create: if signedIn()
+        && request.resource.data.buyerId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if signedIn() && (
+        // artisan or orders supporter moves the order along - items, total
+        // and buyer can't be changed
+        (canManageOrders(resource.data.artisanId)
+          && changed().hasOnly(['status', 'statusHistory', 'paymentStatus', 'deliveryNote',
+                                'cancelReason', 'updatedAt', 'updatedBy'])
+          && request.resource.data.status in ['pending', 'confirmed', 'preparing',
+                                              'shipped', 'delivered', 'cancelled'])
+        // buyer can cancel their own order while it is still pending
+        || (isSelf(resource.data.buyerId)
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'cancelled'
+          && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])));
+      allow delete: if false;
+    }
 
     // I09 chats. id = orderId for an order chat, productId_buyerId for a
     // product question (docs/FIREBASE_SCHEMA.md). Works out who is in the
@@ -241,7 +234,15 @@ service cloud.firestore {
     }
 
     match /conversations/{cid} {
-      allow read, create: if canChat(cid);
+      // chat lists ask for where buyerId / artisanId == me, which can be
+      // checked from the chat itself; one chat is checked through its order
+      allow read: if signedIn() && (
+        (resource != null
+          && (resource.data.buyerId == request.auth.uid
+              || resource.data.artisanId == request.auth.uid
+              || hasScope(resource.data.artisanId, 'communication')))
+        || canChat(cid));
+      allow create: if canChat(cid);
       allow update: if canChat(cid) && changed().hasOnly(['lastMessage', 'lastMessageAt']);
       allow delete: if false;
 
