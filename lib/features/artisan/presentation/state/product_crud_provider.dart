@@ -11,10 +11,17 @@ class ProductCrudProvider extends ChangeNotifier {
       : _dataSource = dataSource ?? ArtisanProductDataSource();
 
   bool _isSaving = false;
+  bool _isDeleting = false;
   String? _errorMessage;
 
   bool get isSaving => _isSaving;
+  bool get isDeleting => _isDeleting;
   String? get errorMessage => _errorMessage;
+
+  void clearError() {
+    _errorMessage = null;
+    notifyListeners();
+  }
 
   Future<bool> saveProduct(ProductModel product, {bool isEditing = false}) async {
     _isSaving = true;
@@ -32,13 +39,43 @@ class ProductCrudProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isSaving = false;
-      _errorMessage = e.toString();
+      _errorMessage = 'Failed to save product: $e';
       notifyListeners();
       return false;
     }
   }
 
+  Future<bool> deleteProduct(String productId) async {
+    _isDeleting = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      await _dataSource.deleteProduct(productId);
+      _isDeleting = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isDeleting = false;
+      _errorMessage = 'Failed to delete product: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> toggleAvailability(String productId, bool isAvailable, {String? updatedBy}) async {
+    try {
+      await _dataSource.toggleAvailability(productId, isAvailable, updatedBy: updatedBy);
+      return true;
+    } catch (e) {
+      _errorMessage = 'Failed to update availability: $e';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  @Deprecated('Use deleteProduct(productId)')
   Future<void> removeProduct(String productId) async {
-    await _dataSource.deleteProduct(productId);
+    await deleteProduct(productId);
   }
 }
