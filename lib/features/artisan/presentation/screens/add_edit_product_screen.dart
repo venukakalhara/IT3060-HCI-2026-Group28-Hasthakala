@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/shared_models/product_model.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
 import '../../../../core/widgets/custom_button.dart';
 import '../../../../core/widgets/custom_text_field.dart';
+import '../../../account/presentation/state/auth_provider.dart';
 import '../state/product_crud_provider.dart';
 import '../widgets/craft_image_picker_widget.dart';
 
@@ -49,8 +49,10 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     final p = widget.productToEdit;
     _titleController = TextEditingController(text: p?.title ?? '');
     _descController = TextEditingController(text: p?.description ?? '');
-    _priceController = TextEditingController(text: p != null ? '${p.priceLkr}' : '');
-    _stockController = TextEditingController(text: p != null ? '${p.stockQuantity}' : '1');
+    _priceController =
+        TextEditingController(text: p != null ? '${p.priceLkr}' : '');
+    _stockController =
+        TextEditingController(text: p != null ? '${p.stockQuantity}' : '1');
     _districtController = TextEditingController(text: p?.district ?? 'Kandy');
     _selectedCategory = p?.category ?? 'Pottery';
     _imageUrls = p?.imageUrls ?? [];
@@ -88,11 +90,13 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                   ),
                   const SizedBox(height: 14),
                   const Text('Category',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                      style:
+                          TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 6),
                   DropdownButtonFormField<String>(
                     value: _selectedCategory,
-                    decoration: const InputDecoration(contentPadding: EdgeInsets.all(12)),
+                    decoration: const InputDecoration(
+                        contentPadding: EdgeInsets.all(12)),
                     items: _categories
                         .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                         .toList(),
@@ -133,10 +137,12 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                   const SizedBox(height: 14),
                   CustomTextField(
                     label: 'Description & Heritage Story',
-                    hint: 'Explain the craft techniques, materials, and cultural value...',
+                    hint:
+                        'Explain the craft techniques, materials, and cultural value...',
                     maxLines: 4,
                     controller: _descController,
-                    validator: (v) => v!.isEmpty ? 'Description is required' : null,
+                    validator: (v) =>
+                        v!.isEmpty ? 'Description is required' : null,
                   ),
                   const SizedBox(height: 24),
                   CustomButton(
@@ -144,20 +150,28 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
                     isLoading: provider.isSaving,
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
+                        final auth = context.read<AuthProvider>();
+                        final artisanName = widget.productToEdit?.artisanName ??
+                            auth.activeGrant?.artisanName ??
+                            auth.currentUser?.displayName ??
+                            'Artisan';
                         final product = ProductModel(
                           id: widget.productToEdit?.id ?? '',
                           artisanId: widget.artisanId,
-                          artisanName: 'Master Artisan',
+                          artisanName: artisanName,
                           title: _titleController.text.trim(),
                           description: _descController.text.trim(),
-                          priceLkr: double.tryParse(_priceController.text) ?? 0.0,
+                          priceLkr:
+                              double.tryParse(_priceController.text) ?? 0.0,
                           category: _selectedCategory,
                           imageUrls: _imageUrls,
-                          stockQuantity: int.tryParse(_stockController.text) ?? 1,
+                          stockQuantity:
+                              int.tryParse(_stockController.text) ?? 1,
                           district: _districtController.text.trim(),
                         );
 
-                        final success = await provider.saveProduct(product, isEditing: isEditing);
+                        final success = await provider.saveProduct(product,
+                            isEditing: isEditing);
                         if (success && mounted) {
                           Navigator.pop(context);
                         }
