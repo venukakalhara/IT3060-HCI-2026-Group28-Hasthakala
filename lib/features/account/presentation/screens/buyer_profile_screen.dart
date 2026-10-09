@@ -41,6 +41,7 @@ class BuyerProfileScreen extends StatelessWidget {
               children: [
                 ProfileAvatarWidget(
                     name: user.displayName,
+                    uid: user.uid,
                     imageUrl: user.photoUrl,
                     onCameraTap: editProfile),
                 const SizedBox(height: 16),

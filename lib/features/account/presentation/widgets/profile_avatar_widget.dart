@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../data/datasources/profile_photo_remote_datasource.dart';
@@ -24,7 +25,9 @@ class ProfileAvatarWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (uid == null || uid!.isEmpty) return _build(null);
+    if (uid == null || uid!.isEmpty || Firebase.apps.isEmpty) {
+      return _build(null);
+    }
     return _SavedPhoto(uid: uid!, builder: _build);
   }
 

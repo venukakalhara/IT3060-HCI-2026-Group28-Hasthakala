@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -12,21 +13,31 @@ import '../../data/datasources/profile_photo_remote_datasource.dart';
 // form's Save button or its unsaved-changes check.
 class ProfilePhotoButton extends StatefulWidget {
   final String uid;
-  const ProfilePhotoButton({super.key, required this.uid});
+  final CrossAxisAlignment alignment;
+  const ProfilePhotoButton({
+    super.key,
+    required this.uid,
+    this.alignment = CrossAxisAlignment.start,
+  });
 
   @override
   State<ProfilePhotoButton> createState() => _ProfilePhotoButtonState();
 }
 
 class _ProfilePhotoButtonState extends State<ProfilePhotoButton> {
-  final _source = ProfilePhotoRemoteDataSource();
+  ProfilePhotoRemoteDataSource? _source;
   late final Stream<Uint8List?> _photo;
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    _photo = _source.watch(widget.uid);
+    if (Firebase.apps.isEmpty) {
+      _photo = Stream.value(null);
+    } else {
+      _source = ProfilePhotoRemoteDataSource();
+      _photo = _source!.watch(widget.uid);
+    }
   }
 
   Future<void> _choose(bool hasPhoto) async {
@@ -47,13 +58,15 @@ class _ProfilePhotoButtonState extends State<ProfilePhotoButton> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                      color: AppColors.border, borderRadius: BorderRadius.circular(2)),
+                      color: AppColors.border,
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               const SizedBox(height: 16),
               Text(ctx.tr('photo_sheet_title'),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               _SheetOption(
                 icon: Icons.photo_library_outlined,
@@ -91,7 +104,7 @@ class _ProfilePhotoButtonState extends State<ProfilePhotoButton> {
 
     if (choice == 'remove') {
       setState(() => _busy = true);
-      final result = await _source.remove(widget.uid);
+      final result = await _source!.remove(widget.uid);
       if (!mounted) return;
       setState(() => _busy = false);
       messenger.showSnackBar(SnackBar(
@@ -125,7 +138,7 @@ class _ProfilePhotoButtonState extends State<ProfilePhotoButton> {
 
     setState(() => _busy = true);
     messenger.showSnackBar(SnackBar(content: Text(text['busy']!)));
-    final result = await _source.save(widget.uid, bytes);
+    final result = await _source!.save(widget.uid, bytes);
     if (!mounted) return;
     setState(() => _busy = false);
     messenger.hideCurrentSnackBar();
@@ -139,22 +152,30 @@ class _ProfilePhotoButtonState extends State<ProfilePhotoButton> {
       builder: (context, snapshot) {
         final hasPhoto = snapshot.data != null;
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: widget.alignment,
           children: [
             OutlinedButton.icon(
-              onPressed: _busy ? null : () => _choose(hasPhoto),
+              onPressed:
+                  _busy || _source == null ? null : () => _choose(hasPhoto),
               icon: _busy
                   ? const SizedBox(
                       width: 18,
                       height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: AppColors.primary))
                   : const Icon(Icons.photo_camera_outlined, size: 20),
               label: Text(context.tr(hasPhoto ? 'photo_change' : 'photo_add')),
               style: OutlinedButton.styleFrom(minimumSize: const Size(0, 44)),
             ),
             const SizedBox(height: 6),
-            Text(context.tr('photo_hint'),
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+            Text(
+              context.tr('photo_hint'),
+              textAlign: widget.alignment == CrossAxisAlignment.center
+                  ? TextAlign.center
+                  : TextAlign.start,
+              style: const TextStyle(
+                  color: AppColors.textSecondary, fontSize: 13),
+            ),
           ],
         );
       },
@@ -208,7 +229,9 @@ class _SheetOption extends StatelessWidget {
                       style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
-                          color: color == AppColors.error ? color : AppColors.textPrimary)),
+                          color: color == AppColors.error
+                              ? color
+                              : AppColors.textPrimary)),
                 ),
               ],
             ),
