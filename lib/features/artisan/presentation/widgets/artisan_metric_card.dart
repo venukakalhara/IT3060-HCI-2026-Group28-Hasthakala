@@ -8,12 +8,12 @@ class ArtisanMetricCard extends StatelessWidget {
   final Color? color;
 
   const ArtisanMetricCard({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     required this.icon,
     this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +31,7 @@ class ArtisanMetricCard extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 18,
-            backgroundColor: effectiveColor.withOpacity(0.12),
+            backgroundColor: effectiveColor.withValues(alpha: 0.12),
             child: Icon(icon, color: effectiveColor, size: 20),
           ),
           const SizedBox(height: 12),
