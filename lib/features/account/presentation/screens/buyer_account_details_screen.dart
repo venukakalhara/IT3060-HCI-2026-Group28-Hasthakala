@@ -7,6 +7,8 @@ import '../../../../core/constants/firestore_collections.dart';
 import '../../../../core/shared_models/review_model.dart';
 import '../../../../core/shared_models/user_model.dart';
 import '../state/auth_provider.dart';
+import '../widgets/profile_avatar_widget.dart';
+import '../widgets/profile_photo_picker.dart';
 
 class BuyerAccountDetailsScreen extends StatefulWidget {
   const BuyerAccountDetailsScreen(
@@ -40,7 +42,6 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
         : {
             'displayName': user.displayName,
             'phone': user.phone ?? '',
-            'photoUrl': user.photoUrl ?? ''
           };
     for (final entry in values.entries) {
       _fields[entry.key] =
@@ -71,7 +72,6 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
           .doc(widget.user.uid)
           .update({
         if (widget.address) 'defaultDeliveryAddress': values else ...values,
-        if (!widget.address && values['photoUrl']!.isEmpty) 'photoUrl': null,
         'updatedAt': FieldValue.serverTimestamp(),
       });
       await auth.reloadCurrentUser();
@@ -93,13 +93,6 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
 
   String? _validate(String key, String? value) {
     final text = value?.trim() ?? '';
-    if (key == 'photoUrl') {
-      if (text.isEmpty) return null;
-      final uri = Uri.tryParse(text);
-      return uri == null || uri.scheme != 'https' || uri.host.isEmpty
-          ? 'Enter a valid HTTPS image URL'
-          : null;
-    }
     if (text.isEmpty && (widget.address || key == 'displayName')) {
       return 'This field is required';
     }
@@ -124,7 +117,6 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
         : {
             'displayName': 'Full name',
             'phone': 'Phone number (optional)',
-            'photoUrl': 'Profile photo URL (optional)'
           };
     return PopScope(
         canPop: !_saving,
@@ -144,8 +136,29 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
                   const SizedBox(height: 24),
                 ],
                 if (!widget.address) ...[
-                  Text(widget.user.email,
-                      style: const TextStyle(color: AppColors.textSecondary)),
+                  Center(
+                    child: ProfileAvatarWidget(
+                      uid: widget.user.uid,
+                      name: widget.user.displayName,
+                      imageUrl: widget.user.photoUrl,
+                      radius: 52,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: ProfilePhotoButton(
+                      uid: widget.user.uid,
+                      alignment: CrossAxisAlignment.center,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: Text(
+                      widget.user.email,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ),
                   const SizedBox(height: 20),
                 ],
                 for (final entry in labels.entries)
@@ -155,20 +168,12 @@ class _BuyerAccountDetailsScreenState extends State<BuyerAccountDetailsScreen> {
                         controller: _fields[entry.key],
                         enabled: !_saving,
                         decoration: InputDecoration(
-                            labelText: entry.value,
-                            helperText: entry.key == 'photoUrl'
-                                ? 'Paste an image link, or leave blank to use your initial.'
-                                : null,
-                            helperMaxLines: 2),
+                            labelText: entry.value, helperMaxLines: 2),
                         keyboardType: entry.key == 'phone'
                             ? TextInputType.phone
-                            : entry.key == 'photoUrl'
-                                ? TextInputType.url
-                                : TextInputType.text,
-                        textCapitalization: entry.key == 'photoUrl'
-                            ? TextCapitalization.none
-                            : TextCapitalization.words,
-                        maxLength: entry.key == 'photoUrl' ? 2048 : 200,
+                            : TextInputType.text,
+                        textCapitalization: TextCapitalization.words,
+                        maxLength: 200,
                         validator: (value) => _validate(entry.key, value)),
                   ),
                 if (_error != null)
