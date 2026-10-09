@@ -32,17 +32,13 @@ void main() {
     await tester.pumpWidget(ChangeNotifierProvider.value(
         value: cart, child: const MaterialApp(home: CheckoutScreen())));
     await tester.pumpAndSettle();
-    expect(find.text('Actual Basket'), findsOneWidget);
+    expect(find.text('Actual Basket × 2'), findsOneWidget);
     expect(find.text('Heritage Terracotta Jug'), findsNothing);
-    expect(find.text('Kasun Kalhara'), findsNothing);
-    final fields = find.byType(TextField);
-    await tester.enterText(fields.at(0), 'Test Buyer');
-    await tester.enterText(fields.at(1), '123 Test Road');
-    await tester.enterText(fields.at(2), '0771234567');
-    await tester.tap(find.text('Review Order'));
+    // 2000 for the items + 450 delivery
+    expect(find.textContaining('2,450.00'), findsWidgets);
+    await tester.tap(find.text('Continue to Delivery Details'));
     await tester.pumpAndSettle();
-    expect(find.textContaining('2,350.00'), findsWidgets);
-    expect(find.textContaining('No order has been placed.'), findsOneWidget);
+    expect(find.text('Shipping Address'), findsOneWidget);
   });
 
   testWidgets(

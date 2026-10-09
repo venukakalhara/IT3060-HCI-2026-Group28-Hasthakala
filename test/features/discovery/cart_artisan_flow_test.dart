@@ -94,7 +94,7 @@ void main() {
     expect(find.byTooltip('Cart (1)'), findsOneWidget);
     await tester.tap(find.byTooltip('Cart (1)'));
     await tester.pumpAndSettle();
-    expect(find.text('My Craft Cart'), findsOneWidget);
+    expect(find.text('My Cart'), findsOneWidget);
     expect(find.text('jug'), findsOneWidget);
     await tester.pump(const Duration(seconds: 2));
   });
@@ -114,7 +114,8 @@ void main() {
         '2');
     await tester.tap(find.text('Buy Now'));
     await tester.pumpAndSettle();
-    expect(cart.totalItemCount, 2);
+    // buy now should not add anything to the cart
+    expect(cart.totalItemCount, 0);
     expect(find.text('Checkout destination'), findsOneWidget);
   });
 
