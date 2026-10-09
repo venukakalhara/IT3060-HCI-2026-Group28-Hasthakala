@@ -26,13 +26,17 @@ class DiscoveryRemoteDataSource {
   Stream<List<ProductModel>> getFeaturedProductsStream() {
     return _firestoreService
         .streamCollection(
-          collection: FirestoreCollections.products,
-          queryBuilder: (q) =>
-              q.where('isAvailable', isEqualTo: true).limit(20),
-        )
-        .map((snapshot) => snapshot.docs
-            .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
-            .toList());
+      collection: FirestoreCollections.products,
+      queryBuilder: (q) => q.where('isAvailable', isEqualTo: true),
+    )
+        .map((snapshot) {
+      final products = snapshot.docs
+          .map((doc) => ProductModel.fromMap(doc.data(), doc.id))
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      // The newest listing must always enter the featured feed immediately.
+      return products.take(20).toList(growable: false);
+    });
   }
 
   /// Search & filter products by craft category or district
