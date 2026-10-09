@@ -68,8 +68,19 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     _stockController = TextEditingController(text: p != null ? '${p.stockQuantity}' : '5');
     _districtController = TextEditingController(text: p?.district ?? 'Kandy');
     _materialsController = TextEditingController(text: p?.materials ?? '');
-    _selectedCategoryKey = p?.category ?? 'pottery';
+    _selectedCategoryKey = _categoryKeyFor(p?.category);
     _imageUrls = p != null ? List<String>.from(p.imageUrls) : [];
+  }
+
+  // Some older listings saved the label ("Pottery") instead of the key
+  // ("pottery"). The dropdown needs a key from the list or it crashes.
+  String _categoryKeyFor(String? value) {
+    if (value == null || value.trim().isEmpty) return 'pottery';
+    final v = value.trim().toLowerCase();
+    for (final c in CraftCategories.all) {
+      if (c.key == v || c.label.toLowerCase() == v) return c.key;
+    }
+    return 'other';
   }
 
   @override
