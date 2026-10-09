@@ -5,7 +5,7 @@
 
 ---
 
-## 🏛 Team Members & Feature Ownership
+## Team Members & Feature Ownership
 
 | # | Feature Scope | Git Feature Branch | Assigned Member | Directory Path |
 |---|---|---|---|---|
@@ -51,7 +51,7 @@ You can also create your own account from the app (Create Account, then Shop or 
 
 ---
 
-## 🏗 Architecture Overview: Feature-First Clean Pattern
+## Architecture Overview: Feature-First Clean Pattern
 
 The project is structured under **Feature-First Architecture** to completely isolate each team member's workspace and prevent merge conflicts across branches:
 
@@ -82,7 +82,7 @@ lib/
 
 ---
 
-## 🚀 Git Branching Workflow for Team Members
+## Git Branching Workflow for Team Members
 
 ### 1. Initial Setup on `developer` branch
 Ensure you are on the updated `developer` branch:
@@ -94,16 +94,16 @@ git pull origin developer
 ### 2. Creating your Feature Branch
 Each member creates their designated branch from `developer`:
 ```bash
-# Member 1 (JAYAWARDANA V. K. A.)
+# Member 1 
 git checkout -b feature/buyer-discovery
 
-# Member 2 (DISSANAYAKE D. M. S. D.)
+# Member 2 
 git checkout -b feature/buyer-purchase
 
-# Member 3 (KUMARI R. P. G. D.)
+# Member 3 
 git checkout -b feature/artisan-management
 
-# Member 4 (WANIGATHUNGA Y. J.)
+# Member 4 
 git checkout -b feature/account-support
 ```
 
@@ -118,7 +118,7 @@ git push origin feature/<your-feature-name>
 
 ---
 
-## 🔥 Firebase Setup & Collections Reference
+## Firebase Setup & Collections Reference
 
 Collection names live in `lib/core/constants/firestore_collections.dart`; the full structure is in `docs/FIREBASE_SCHEMA.md`.
 - `users` (with `users/{uid}/cart`): accounts, language, saved address, cart
