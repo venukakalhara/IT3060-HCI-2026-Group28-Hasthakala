@@ -1,7 +1,7 @@
 rules_version = '2';
 
-// Hasthakala Firestore security rules - v1.2
-// NFR3: access is enforced here, not only by hiding buttons in the app.
+// Hasthakala Firestore security rules - v2.2
+// access is enforced here, not only by hiding buttons in the app.
 // Field names follow docs/FIREBASE_SCHEMA.md (locked).
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -14,7 +14,7 @@ service cloud.firestore {
     // Fields in this update that differ from the stored document.
     function changed() { return request.resource.data.diff(resource.data).affectedKeys(); }
 
-    // ---------- I01 Entry/Auth: account documents (FINAL) ----------
+    // I01 Entry/Auth: account documents
     // A user can only see/edit their own account. There is no role field to
     // escalate: contexts come from artisanProfiles and supportGrants.
     match /users/{uid} {
@@ -32,15 +32,15 @@ service cloud.firestore {
       }
     }
 
-    // ---------- Admins: created ONLY from the Firebase console ----------
+    // Admins: created only from the Firebase console
     match /admins/{uid} {
       allow read: if isSelf(uid);
       allow write: if false;
     }
 
-    // ---------- I05 Artisan profile (FINAL) ----------
+    // I05 Artisan profile
     // Any signed-in user can view (public profile). Only the artisan edits it,
-    // and never the 'verified' badge (FR4). Only an admin can set 'verified'.
+    // and never the 'verified' badge. Only an admin can set 'verified'.
     match /artisanProfiles/{artisanUid} {
       allow read: if signedIn();
       allow create: if isSelf(artisanUid)
@@ -53,24 +53,226 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // ---------- TEMPORARY development rules - signed-in users only ----------
-    // MUST be replaced with owner/role/support-grant rules (v2) before
-    // functional testing. Tracked in docs/DECISIONS.md.
-    match /products/{doc=**}      { allow read, write: if signedIn(); }
-    match /orders/{doc=**}        { allow read, write: if signedIn(); }
-    match /conversations/{doc=**} { allow read, write: if signedIn(); }
-    match /reviews/{doc=**}       { allow read, write: if signedIn(); }
+    // I05 profile photo - a small compressed avatar as base64 text
+    // (no Cloud Storage on the free plan, DEVIATIONS DV6).
+    // Anyone signed in can see it; only the owner can change or remove it.
+    match /profilePhotos/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isSelf(uid)
+        && request.resource.data.keys().hasOnly(['data', 'updatedAt'])
+        && request.resource.data.data is string
+        && request.resource.data.data.size() <= 200000;
+      allow delete: if isSelf(uid);
+    }
 
-    // ---------- I13 Family Assistance ----------
-    // Read: only the artisan or the supporter named in the grant
-    // (used at sign-in to find "Supporting <artisan>" contexts).
-    // Writes stay blocked until the I13 authorisation model is implemented.
+    // products / orders / conversations / reviews are further down,
+    // after the I13 helpers they use (hasScope).
+
+    // I13 Family Assistance
+    // Authentication = who you are (always yourself).
+    // Authorisation  = what you may do for an artisan: only an active grant
+    // whose scopes are true. Supporters can never manage support users.
+    function hasArtisanProfile(uid) {
+      return exists(/databases/$(database)/documents/artisanProfiles/$(uid));
+    }
+    function validScopes(s) {
+      return s.keys().hasOnly(['products', 'orders', 'communication'])
+        && s.products is bool && s.orders is bool && s.communication is bool;
+    }
+    function myPhone() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.phone;
+    }
+    // Accepting an invite: the new grant must copy the pending, unexpired
+    // invite exactly, for the signed-in supporter, whose phone must match.
+    function isValidAcceptance(grantId) {
+      let d = request.resource.data;
+      let inv = get(/databases/$(database)/documents/supportInvites/$(d.inviteCode)).data;
+      return d.supporterId == request.auth.uid
+        && grantId == d.artisanId + '_' + request.auth.uid
+        && d.artisanId != request.auth.uid
+        && d.status == 'active'
+        && inv.status == 'pending'
+        && inv.expiresAt > request.time
+        && inv.artisanId == d.artisanId
+        && inv.artisanName == d.artisanName
+        && inv.relationship == d.relationship
+        && inv.phone == d.phone
+        && inv.phone == myPhone()
+        && inv.scopes == d.scopes;
+    }
+    // Used by rules v2 (products / orders / conversations).
+    function hasScope(artisanId, scope) {
+      let grantPath = /databases/$(database)/documents/supportGrants/$(artisanId + '_' + request.auth.uid);
+      return signedIn() && exists(grantPath)
+        && get(grantPath).data.status == 'active'
+        && get(grantPath).data.scopes[scope] == true;
+    }
+
+    match /supportInvites/{code} {
+      allow create: if signedIn()
+        && hasArtisanProfile(request.auth.uid)
+        && code.matches('^[0-9]{6}$')
+        && request.resource.data.code == code
+        && request.resource.data.artisanId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.phone.matches('^0[0-9]{9}$')
+        && request.resource.data.expiresAt > request.time
+        && validScopes(request.resource.data.scopes);
+      // Owner reads own invites; an invitee reads one only with the matching phone.
+      allow get: if signedIn()
+        && (resource.data.artisanId == request.auth.uid
+            || (resource.data.status == 'pending' && resource.data.phone == myPhone()));
+      allow list: if signedIn() && resource.data.artisanId == request.auth.uid;
+      allow update: if signedIn() && (
+        // owner revokes an invite
+        (resource.data.artisanId == request.auth.uid
+          && changed().hasOnly(['status'])
+          && request.resource.data.status == 'revoked')
+        // owner renamed their artisan profile
+        || (resource.data.artisanId == request.auth.uid
+          && changed().hasOnly(['artisanName']))
+        // invitee marks it accepted, in the same write that creates the grant
+        || (resource.data.status == 'pending'
+          && changed().hasOnly(['status', 'acceptedBy'])
+          && request.resource.data.status == 'accepted'
+          && request.resource.data.acceptedBy == request.auth.uid
+          && existsAfter(/databases/$(database)/documents/supportGrants/$(resource.data.artisanId + '_' + request.auth.uid))));
+      // owner cancels an invite that was not accepted
+      allow delete: if signedIn()
+        && resource.data.artisanId == request.auth.uid
+        && resource.data.status == 'pending';
+    }
+
     match /supportGrants/{grantId} {
       allow read: if signedIn()
         && (resource.data.supporterId == request.auth.uid
             || resource.data.artisanId == request.auth.uid);
-      allow write: if false;
+      allow create: if signedIn() && isValidAcceptance(grantId);
+      allow update: if signedIn() && (
+        // owner edits permissions or revokes
+        (resource.data.artisanId == request.auth.uid
+          && changed().hasOnly(['scopes', 'status', 'updatedAt', 'artisanName'])
+          && validScopes(request.resource.data.scopes)
+          && request.resource.data.status in ['active', 'revoked'])
+        // supporter re-accepts a NEW invite (e.g. after a revoke)
+        || (resource.data.supporterId == request.auth.uid && isValidAcceptance(grantId)));
+      allow delete: if false;
     }
-    // supportInvites: blocked until I13. Everything not listed is denied.
+    // ---- rules v2: products, orders, conversations, reviews ----
+    // owner = the artisan in artisanId. A supporter counts only with an
+    // active grant that has the right scope (hasScope above).
+
+    function canManageProducts(artisanId) {
+      return (isSelf(artisanId) && hasArtisanProfile(artisanId))
+        || hasScope(artisanId, 'products')
+        || isAdmin();
+    }
+    function canManageOrders(artisanId) {
+      return isSelf(artisanId) || hasScope(artisanId, 'orders') || isAdmin();
+    }
+
+    // I04 / I11 products - everyone signed in can browse, only the owner
+    // (or a products supporter) adds, edits or removes them.
+    match /products/{productId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && canManageProducts(request.resource.data.artisanId);
+      allow update: if signedIn() && canManageProducts(resource.data.artisanId)
+        && request.resource.data.artisanId == resource.data.artisanId;
+      allow delete: if signedIn() && canManageProducts(resource.data.artisanId);
+    }
+
+    // I07 / I08 / I12 orders - private to the buyer, the artisan and an
+    // orders supporter. Never deleted, so there is always a record.
+    match /orders/{orderId} {
+      allow read: if signedIn()
+        && (isSelf(resource.data.buyerId) || canManageOrders(resource.data.artisanId));
+      // only the buyer places an order, for themselves, and it starts pending
+      allow create: if signedIn()
+        && request.resource.data.buyerId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow update: if signedIn() && (
+        // artisan or orders supporter moves the order along - items, total
+        // and buyer can't be changed
+        (canManageOrders(resource.data.artisanId)
+          && changed().hasOnly(['status', 'statusHistory', 'paymentStatus', 'deliveryNote',
+                                'cancelReason', 'updatedAt', 'updatedBy'])
+          && request.resource.data.status in ['pending', 'confirmed', 'preparing',
+                                              'shipped', 'delivered', 'cancelled'])
+        // buyer can cancel their own order while it is still pending
+        || (isSelf(resource.data.buyerId)
+          && resource.data.status == 'pending'
+          && request.resource.data.status == 'cancelled'
+          && changed().hasOnly(['status', 'statusHistory', 'cancelReason', 'updatedAt', 'updatedBy'])));
+      allow delete: if false;
+    }
+
+    // I09 chats. id = orderId for an order chat, productId_buyerId for a
+    // product question (docs/FIREBASE_SCHEMA.md). Works out who is in the
+    // chat from the order or product, so it works even before the
+    // conversation document exists.
+    function orderOf(cid) {
+      return get(/databases/$(database)/documents/orders/$(cid)).data;
+    }
+    function productArtisan(productId) {
+      return get(/databases/$(database)/documents/products/$(productId)).data.artisanId;
+    }
+    function inProductChat(cid) {
+      let parts = cid.split('_');
+      return parts.size() == 2
+        && exists(/databases/$(database)/documents/products/$(parts[0]))
+        && (isSelf(parts[1])
+            || isSelf(productArtisan(parts[0]))
+            || hasScope(productArtisan(parts[0]), 'communication'));
+    }
+    function canChat(cid) {
+      return signedIn() && (isAdmin()
+        || (exists(/databases/$(database)/documents/orders/$(cid))
+              ? (isSelf(orderOf(cid).buyerId)
+                 || isSelf(orderOf(cid).artisanId)
+                 || hasScope(orderOf(cid).artisanId, 'communication'))
+              : inProductChat(cid)));
+    }
+
+    match /conversations/{cid} {
+      // chat lists ask for where buyerId / artisanId == me, which can be
+      // checked from the chat itself; one chat is checked through its order
+      allow read: if signedIn() && (
+        (resource != null
+          && (resource.data.buyerId == request.auth.uid
+              || resource.data.artisanId == request.auth.uid
+              || hasScope(resource.data.artisanId, 'communication')))
+        || canChat(cid));
+      allow create: if canChat(cid);
+      allow update: if canChat(cid) && changed().hasOnly(['lastMessage', 'lastMessageAt']);
+      allow delete: if false;
+
+      // messages are kept as they were sent - no editing or deleting
+      match /messages/{messageId} {
+        allow read: if canChat(cid);
+        allow create: if canChat(cid)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() <= 2000;
+        allow update, delete: if false;
+      }
+    }
+
+    // reviews - public to read. Only the buyer of a delivered order, once
+    // (the id is orderId_productId, so a second review would be an update).
+    match /reviews/{reviewId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && reviewId == request.resource.data.orderId + '_' + request.resource.data.productId
+        && request.resource.data.buyerId == request.auth.uid
+        && orderOf(request.resource.data.orderId).buyerId == request.auth.uid
+        && orderOf(request.resource.data.orderId).status == 'delivered'
+        && orderOf(request.resource.data.orderId).artisanId == request.resource.data.artisanId
+        && request.resource.data.rating is int
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update, delete: if false;
+    }
+
+    // Everything not listed above is denied by default.
   }
 }

@@ -1,112 +1,76 @@
-# Hasthakala — Firestore Schema (LOCKED)
+# Firestore structure
 
-**Status:** Locked on 06 Oct 2026 (Group 28).
-**Rule:** Collection and field names below are **never renamed or removed**.
-Only **new optional fields** may be added, after telling the whole group.
+Agreed on 06 Oct. Don't rename or remove any collection or field below - other members' code depends on them.
+If you need something new, add an optional field and tell the group.
 
-Shared Dart models live in `lib/core/shared_models/`. Collection names live in
-`lib/core/constants/firestore_collections.dart`. Always use those — never type
-collection or field names by hand.
+Use the models in `lib/core/shared_models/` and the names in `lib/core/constants/firestore_collections.dart`
+instead of typing field names by hand.
 
-## Conventions
+General rules:
+- camelCase names
+- dates are Firestore Timestamps (`FirestoreConverters` in `lib/core/utils/`)
+- money is a number in LKR
+- each document keeps its own id as a field (`productId`, `orderId`, ...)
+- a few Dart property names differ from the stored names (e.g. `priceLkr` is stored as `price`) - the model's toMap/fromMap handles it
 
-- Collection and field names: `camelCase`.
-- Dates: Firestore `Timestamp` (use `FirestoreConverters` in `lib/core/utils/`).
-- Money: number, Sri Lankan Rupees (LKR).
-- Every document stores its own ID as a field (e.g. `productId`, `orderId`).
-- Some Dart property names differ from stored field names for compatibility
-  with existing code. The **stored** name is what is locked (see each model's header comment).
+## Who can do what
 
-## Contexts (decision D1)
-
-There is **no role field**. What a person can do is worked out from data:
-
-| Context | Exists when | Notes |
-|---|---|---|
-| Buyer | Always | Every account can shop |
-| Artisan | `artisanProfiles/{uid}` exists | Created by I05 artisan profile setup |
-| Supporting an artisan | An `active` document in `supportGrants` with `supporterId == uid` | Only via I13 invitation — never self-selected |
-
-"Continue as…" is shown only when a user has more than one context.
+There's no role field. Everyone can shop. Someone is an artisan if `artisanProfiles/{uid}` exists,
+and a supporter if they have an active grant in `supportGrants`. "Continue as" shows when someone has more than one.
 
 ## Collections
 
-### `users/{uid}` — account (I01, Member 4) — model: `UserModel`
-| Field | Type | Notes |
-|---|---|---|
-| uid, email, displayName | string | |
-| phone | string \| null | Used to match I13 invites |
-| photoUrl | string \| null | |
-| primaryPurpose | `"shop"` \| `"sell"` | Answer to "How will you start using HASTHAKALA?" Not a permission. |
-| preferredLanguage | string | `"en"` (D2: other languages may be added later) |
-| defaultDeliveryAddress | map \| null | Same shape as `orders.deliveryAddress` |
-| createdAt, updatedAt | timestamp | |
-Subcollection `users/{uid}/cart/{productId}` (I06, Member 2) — model: `OrderItemModel`:
-productId, artisanId, title, unitPrice, quantity, imageUrl, addedAt.
+**users/{uid}** - account (UserModel)
+uid, email, displayName, phone, photoUrl, primaryPurpose (`shop` / `sell`), preferredLanguage (`en` / `si` / `ta`),
+defaultDeliveryAddress, createdAt, updatedAt.
+Cart: `users/{uid}/cart/{productId}` - productId, artisanId, title, unitPrice, quantity, imageUrl, addedAt.
 
-### `artisanProfiles/{artisanUid}` — I05 (manage: Member 4, public view: Member 1) — model: `ArtisanProfileModel`
-| Field | Type | Notes |
-|---|---|---|
-| artisanUid, displayName, craftType, about, location | string | Matches hi-fi edit form |
-| photoUrl | string \| null | |
-| verified | bool | **Admin only** (FR4). Artisan cannot change it. |
-| createdAt, updatedAt | timestamp | |
-Ratings are **calculated from `reviews`** when displayed — never stored.
+**artisanProfiles/{uid}** - artisan profile (ArtisanProfileModel)
+artisanUid, displayName, craftType, about, location, photoUrl, verified, createdAt, updatedAt.
+Optional `coverStyle` (`photo`, `collage`, `clay`, `sunset`, `paddy`, `linen`) - the cover the artisan picked; missing means `photo`. Saved on its own, not by the edit form.
+Only an admin can change `verified`. Ratings are worked out from reviews.
 
-### `products/{productId}` — I11 writes (Member 3 / authorised supporter), I02–I04 read (Member 1) — model: `ProductModel`
-| Field | Type |
-|---|---|
-| productId, artisanId, artisanName, title, description, category, materials, originDistrict | string |
-| price | number (LKR) |
-| stockQuantity | int |
-| isAvailable | bool |
-| imageUrls | list of string |
-| createdAt, updatedAt | timestamp |
-| updatedBy | uid of last editor (shows if a supporter made the change) |
+**products/{productId}** (ProductModel)
+productId, artisanId, artisanName, title, description, category, materials, originDistrict, price,
+stockQuantity, isAvailable, imageUrls, createdAt, updatedAt, updatedBy.
 
-### `orders/{orderId}` — I07/I08 (Member 2), I12 (Member 3) — model: `OrderModel`
-**One order per artisan** (a cart with two artisans becomes two orders).
-| Field | Type | Notes |
-|---|---|---|
-| orderId, buyerId, buyerName, artisanId, artisanName | string | |
-| items | list of {productId, artisanId, title, unitPrice, quantity, imageUrl} | Prices copied at order time |
-| subtotal, deliveryFee, total | number | deliveryFee = 0 unless the team agrees a charge |
-| deliveryAddress | {recipientName, phone, addressLine, city, district} | |
-| paymentMethod | `"cash_on_delivery"` \| `"bank_transfer"` | See `PaymentMethods` |
-| paymentStatus | `"pending"` \| `"paid"` | |
-| status | `pending` \| `confirmed` \| `preparing` \| `shipped` \| `delivered` \| `cancelled` | Decision D5 |
-| statusHistory | list of {status, at, byUid} | Drives I08 progress |
-| deliveryNote, cancelReason | string \| null | |
-| createdAt, updatedAt | timestamp | |
-| updatedBy | uid | |
+**orders/{orderId}** (OrderModel) - one order per artisan
+orderId, buyerId, buyerName, artisanId, artisanName, items (productId, artisanId, title, unitPrice, quantity, imageUrl),
+subtotal, deliveryFee, total, deliveryAddress (recipientName, phone, addressLine, city, district),
+paymentMethod (`cash_on_delivery` / `bank_transfer`), paymentStatus (`pending` / `paid`),
+status (`pending`, `confirmed`, `preparing`, `shipped`, `delivered`, `cancelled`), statusHistory (status, at, byUid),
+deliveryNote, cancelReason, createdAt, updatedAt, updatedBy.
 
-### `conversations/{conversationId}` + `messages/{messageId}` — I09 (buyer: Member 2, artisan: Member 3)
-Model: `ConversationModel`, `ChatMessageModel`. Every conversation is tied to an
-**order** or a **product** — never a generic messenger.
-- ID: the orderId (order chat) or `{productId}_{buyerId}` (product question).
-- Conversation: conversationId, type (`"order"` \| `"product_query"`), orderId, productId, buyerId, artisanId, lastMessage, lastMessageAt, createdAt.
-- Message: messageId, senderId, senderName, senderContext (`"buyer"` \| `"artisan"` \| `"supporter"`), text, type (`"text"` \| `"prompt"`), sentAt.
+**conversations/{id}** and **conversations/{id}/messages/{messageId}** (ConversationModel, ChatMessageModel)
+Every chat belongs to an order (id = orderId) or a product question (id = productId_buyerId).
+Conversation: conversationId, type (`order` / `product_query`), orderId, productId, buyerId, artisanId, lastMessage, lastMessageAt, createdAt.
+Message: messageId, senderId, senderName, senderContext (`buyer` / `artisan` / `supporter`), text, type (`text` / `prompt`), sentAt.
 
-### `reviews/{orderId}_{productId}` — FR4 (create: Member 2, display: Member 1) — model: `ReviewModel`
-orderId, productId, artisanId, buyerId, buyerName, rating (1–5), comment, createdAt.
-Only the buyer of a **delivered** order may create one (enforced in rules v2).
+**reviews/{orderId}_{productId}** (ReviewModel)
+orderId, productId, artisanId, buyerId, buyerName, rating (1-5), comment, createdAt. Only after the order is delivered.
 
-### `supportGrants/{artisanUid}_{supporterUid}` — I13 (Member 4; checked by Member 3's screens) — model: `SupportGrantModel`
-artisanId, artisanName, supporterId, supporterName, relationship, phone,
-scopes {products, orders, communication}, status (`"active"` \| `"revoked"`), grantedAt, updatedAt.
+**profilePhotos/{uid}** - small profile photo (I05)
+data (base64 text of a ~320px JPEG, max 200,000 characters), updatedAt. Only the owner writes it; anyone signed in reads it.
+Kept apart from users and artisanProfiles so nobody else's reads get bigger. `photoUrl` fields are unchanged.
 
-### `supportInvites/{code}` — I13 (Member 4) — model: `SupportInviteModel`
-code, artisanId, artisanName, inviteeName, relationship, phone, scopes,
-status (`pending` \| `accepted` \| `revoked` \| `expired`), createdAt, expiresAt, acceptedBy.
+**supportGrants/{artisanUid}_{supporterUid}** (SupportGrantModel)
+artisanId, artisanName, supporterId, supporterName, relationship, phone, scopes (products, orders, communication),
+status (`active` / `revoked`), grantedAt, updatedAt, inviteCode.
 
-### `admins/{uid}`
-Created **only in the Firebase console**. Lets an admin set `artisanProfiles.verified`.
+**supportInvites/{code}** (SupportInviteModel)
+code, artisanId, artisanName, inviteeName, relationship, phone, scopes, status (`pending` / `accepted` / `revoked` / `expired`),
+createdAt, expiresAt, acceptedBy.
 
-## Removed from the original scaffold (do not use)
-`users.role`, `users.isFamilyAssisted`, `users.bio`, `users.district`, top-level `carts`,
-`chats`, `categories`, `family_permissions`, ISO date strings.
+**admins/{uid}** - added by hand in the Firebase console only.
 
-## Security rules
-Enforced in `firestore.rules`. Current version: **v1.1** — `users`, `users/{uid}/cart`,
-`artisanProfiles` and `admins` are final; `products`, `orders`, `conversations`, `reviews`
-are TEMPORARY (signed-in only) and must be replaced (v2) before functional testing.
+## Not used any more
+users.role, users.isFamilyAssisted, users.bio, users.district, top-level carts, chats, categories, family_permissions.
+
+## Rules
+`firestore.rules` (v2.2). Proper rules for every collection:
+- products: anyone signed in reads; the artisan (or a supporter with `products`) adds, edits, deletes; `artisanId` can't change.
+- orders: only the buyer, the artisan or a supporter with `orders` reads; only the buyer creates (status `pending`); the artisan side changes status fields only; the buyer can cancel while `pending`; never deleted.
+- conversations + messages: only people in that order or product chat (or a supporter with `communication`); messages can't be edited or deleted.
+- reviews: anyone signed in reads; only the buyer of a `delivered` order creates one, once.
+
+Checkout saves `artisanId` and `artisanName` on every order. Chat lists can be read with `where('buyerId' == me)` or `where('artisanId' == me)`. Rules are not filters: a list query has to ask only for what the person may read, e.g. orders `where('artisanId', isEqualTo: <acting artisan>)` or `where('buyerId', isEqualTo: <uid>)`. A query without the filter is refused as a whole.

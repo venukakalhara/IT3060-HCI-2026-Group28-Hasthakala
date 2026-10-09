@@ -1,6 +1,6 @@
-/// Shared craft category list (schema S1: stored value = `key`, shown = `label`).
-/// Used for products.category and artisanProfiles.craftType.
-/// New categories may be ADDED; never change an existing key.
+// Shared craft category list.
+// Used for products.category and artisanProfiles.craftType.
+// New categories may be added; never change an existing key.
 class CraftCategory {
   final String key;
   final String label;

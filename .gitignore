@@ -46,3 +46,5 @@ key.properties
 firebase-debug.log
 firestore-debug.log
 .firebase/
+# Widget Preview related
+.widget_preview/

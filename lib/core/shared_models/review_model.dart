@@ -1,7 +1,7 @@
 import '../utils/firestore_converters.dart';
 
-/// reviews/{orderId}_{productId} - FR4. Created by the buyer of a DELIVERED
-/// order (Member 2, enforced by security rules); shown on I04/I05 (Member 1).
+// reviews/{orderId}_{productId}. Created by the buyer of a delivered
+// order; shown on I04/I05.
 class ReviewModel {
   final String orderId;
   final String productId;

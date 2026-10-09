@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-/// Hasthakala design system colours ("Heritage Clay & Ceylon Earth").
-/// Source: Hasthakala UI/UX & Colour System Specification + Milestone 02 hi-fi.
-/// Rule: no pure black (#000000) or pure white (#FFFFFF) anywhere in the app.
+// Hasthakala design system colours ("Heritage Clay & Ceylon Earth").
+// Source: Hasthakala UI/UX & Colour System Specification + Milestone 02 hi-fi.
+// Rule: no pure black (#000000) or pure white (#FFFFFF) anywhere in the app.
 class AppColors {
   // Primary - Terracotta Clay: main actions (Sign In, Add to Cart, Save), active nav tab
   static const Color primary = Color(0xFFB85028);
   static const Color primaryLight = Color(0xFFD9805C);
   static const Color primaryDark = Color(0xFF8E3A1B);
 
-  // Text/icons placed ON a primary-coloured button (Raw Linen, not white)
+  // Text/icons placed on a primary-coloured button (Raw Linen, not white)
   static const Color onPrimary = Color(0xFFFAF7F2);
 
   // Accent - Golden Ochre: ratings, badges, highlights.
-  // NOT use for normal-size text on Raw Linen (contrast ~3:1, fails WCAG AA).
+  // too light for normal-size text on Raw Linen (about 3:1 contrast)
   static const Color secondary = Color(0xFFD97706);
   static const Color secondaryLight = Color(0xFFF2B266);
   static const Color secondaryDark = Color(0xFFA85A04);

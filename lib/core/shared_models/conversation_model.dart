@@ -1,12 +1,11 @@
 import '../utils/firestore_converters.dart';
 
-/// Every conversation is tied to an order or a product - never a generic
-/// messenger (I09 contract). Stored as 'order' or 'product_query'.
+// Every conversation is tied to an order or a product - never a generic
+// messenger. Stored as 'order' or 'product_query'.
 enum ConversationType { order, productQuery }
 
-/// conversations/{conversationId} - I09 (buyer side: Member 2,
-/// artisan side: Member 3). ID = orderId for order chats, or
-/// '{productId}_{buyerId}' for product questions.
+// conversations/{conversationId} - I09. ID = orderId for order chats, or
+// '{productId}_{buyerId}' for product questions.
 class ConversationModel {
   final String id;
   final ConversationType type;

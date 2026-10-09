@@ -1,9 +1,9 @@
 import '../utils/firestore_converters.dart';
 
-/// artisanProfiles/{artisanUid} - I05 (FR1, FR4).
-/// Manage view: Member 4. Public view: Member 1. LOCKED field names.
-/// `verified` can only be changed by an admin (enforced by security rules).
-/// Ratings are calculated from `reviews` when displayed, never stored here.
+// artisanProfiles/{artisanUid} - I05.
+// edited in I05 Manage, shown in the public artisan profile
+// `verified` can only be changed by an admin (enforced by security rules).
+// Ratings are calculated from `reviews` when displayed, never stored here.
 class ArtisanProfileModel {
   final String artisanUid;
   final String displayName;

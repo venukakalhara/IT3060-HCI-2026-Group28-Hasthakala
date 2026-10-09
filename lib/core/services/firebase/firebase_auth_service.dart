@@ -1,10 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/services.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../errors/exceptions.dart';
 
 class FirebaseAuthService {
   final FirebaseAuth _auth;
+  final GoogleSignIn _google;
 
-  FirebaseAuthService({FirebaseAuth? auth}) : _auth = auth ?? FirebaseAuth.instance;
+  FirebaseAuthService({FirebaseAuth? auth, GoogleSignIn? google})
+      : _auth = auth ?? FirebaseAuth.instance,
+        _google = google ?? GoogleSignIn();
 
   Stream<User?> get authStateChanges => _auth.authStateChanges();
 
@@ -42,6 +47,29 @@ class FirebaseAuthService {
     }
   }
 
+  // Google account picker > Firebase sign in. null when the picker is closed.
+  // Needs the Google provider on in Firebase and this laptop's SHA-1 added.
+  Future<UserCredential?> signInWithGoogle() async {
+    try {
+      final googleUser = await _google.signIn();
+      if (googleUser == null) return null;
+      final tokens = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        idToken: tokens.idToken,
+        accessToken: tokens.accessToken,
+      );
+      return await _auth.signInWithCredential(credential);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException(friendlyMessage(e.code));
+    } on PlatformException catch (e) {
+      throw AuthException(e.code == 'network_error'
+          ? friendlyMessage('network-request-failed')
+          : 'Google sign in failed. Please try again.');
+    } catch (_) {
+      throw const AuthException('Google sign in failed. Please try again.');
+    }
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email.trim());
@@ -50,8 +78,7 @@ class FirebaseAuthService {
     }
   }
 
-  /// Plain-language messages for Firebase error codes (heuristic: help users
-  /// recognise, diagnose and recover from errors). Wording follows the I01 hi-fi.
+  // turns Firebase error codes into messages people can act on
   static String friendlyMessage(String code) {
     switch (code) {
       case 'invalid-credential':
@@ -70,12 +97,18 @@ class FirebaseAuthService {
         return 'Too many attempts. Please wait a moment and try again.';
       case 'user-disabled':
         return 'This account has been disabled. Please contact support.';
+      case 'account-exists-with-different-credential':
+        return 'This email already has an account. Sign in with your email and password.';
       default:
         return 'Something went wrong. Please try again.';
     }
   }
 
   Future<void> signOut() async {
+    // also forget the Google account, so the picker shows next time
+    try {
+      await _google.signOut();
+    } catch (_) {}
     await _auth.signOut();
   }
 }

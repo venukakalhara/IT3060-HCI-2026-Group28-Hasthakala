@@ -1,10 +1,8 @@
 import '../utils/firestore_converters.dart';
 
-/// products/{productId} - I11 writes (Member 3 or an authorised supporter),
-/// I02-I04 read (Member 1). LOCKED Firestore field names: see
-/// docs/FIREBASE_SCHEMA.md. Some Dart property names differ from the stored
-/// field names for compatibility with existing code:
-///   id -> productId, priceLkr -> price, district -> originDistrict.
+// products/{productId} - I11 writes,
+// I02-I04 read. Some Dart names differ from the stored field names:
+//   id -> productId, priceLkr -> price, district -> originDistrict.
 class ProductModel {
   final String id;
   final String artisanId;
@@ -22,7 +20,7 @@ class ProductModel {
   final DateTime updatedAt;
   final String? updatedBy;
 
-  /// Display-only values calculated from `reviews`. NOT stored on products.
+  // worked out from reviews when shown, not stored on the product
   final double rating;
   final int reviewCount;
 

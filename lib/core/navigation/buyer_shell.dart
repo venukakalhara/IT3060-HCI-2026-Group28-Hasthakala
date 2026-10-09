@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
+import '../localization/tr.dart';
+
 import '../../features/account/presentation/screens/profile_screen.dart';
 import '../../features/discovery/presentation/screens/home_screen.dart';
 import '../../features/discovery/presentation/screens/search_screen.dart';
-import '../widgets/placeholder_tab.dart';
+import '../../features/purchase/presentation/screens/my_orders_screen.dart';
 
-/// Buyer navigation - LOCKED by the Milestone 02 contract:
-/// Home | Search | Orders | Profile. Cart is a contextual action, not a tab.
-/// Owners replace their tab's screen here when it is ready.
+// Buyer bottom navigation.
+// Home | Search | Orders | Profile. Cart is a contextual action, not a tab.
+// Owners replace their tab's screen here when it is ready.
 class BuyerShell extends StatefulWidget {
   const BuyerShell({super.key});
 
@@ -19,10 +21,10 @@ class _BuyerShellState extends State<BuyerShell> {
   int _index = 0;
 
   static const List<Widget> _tabs = [
-    HomeScreen(), // I02 - Member 1
-    SearchScreen(), // I03 - Member 1
-    PlaceholderTab(title: 'My Orders', interfaceId: 'I08', owner: 'Member 2'),
-    ProfileScreen(), // buyer profile - Member 4
+    HomeScreen(), // I02 
+    SearchScreen(), // I03 
+    MyOrdersScreen(), // I08
+    ProfileScreen(), // buyer profile 
   ];
 
   @override
@@ -32,16 +34,16 @@ class _BuyerShellState extends State<BuyerShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-              icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
-          NavigationDestination(icon: Icon(Icons.search), label: 'Search'),
+              icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: context.tr('nav_home')),
+          NavigationDestination(icon: const Icon(Icons.search), label: context.tr('nav_search')),
           NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long),
-              label: 'Orders'),
+              icon: const Icon(Icons.receipt_long_outlined),
+              selectedIcon: const Icon(Icons.receipt_long),
+              label: context.tr('nav_orders')),
           NavigationDestination(
-              icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+              icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: context.tr('nav_profile')),
         ],
       ),
     );

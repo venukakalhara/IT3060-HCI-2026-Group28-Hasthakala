@@ -1,19 +1,18 @@
 import '../utils/firestore_converters.dart';
 
-/// LOCKED message types: free text, or a structured prompt (I09).
+// message type: normal text or a quick prompt
 enum MessageType { text, prompt }
 
-/// conversations/{conversationId}/messages/{messageId} - I09.
-/// LOCKED Firestore field names: see docs/FIREBASE_SCHEMA.md.
-/// Dart -> stored names: id -> messageId, content -> text, timestamp -> sentAt.
-/// `receiverId` and `productIdReference` are Dart-only (kept for existing
-/// code); the order/product context lives on the conversation document.
+// conversations/{conversationId}/messages/{messageId} - I09.
+// Dart -> stored names: id -> messageId, content -> text, timestamp -> sentAt.
+// `receiverId` and `productIdReference` are Dart-only (kept for existing
+// code); the order/product context lives on the conversation document.
 class ChatMessageModel {
   final String id;
   final String senderId;
   final String senderName;
 
-  /// 'buyer', 'artisan' or 'supporter' (a supporter replies on the artisan's behalf).
+  // 'buyer', 'artisan' or 'supporter' (a supporter replies on the artisan's behalf).
   final String senderContext;
   final String content;
   final MessageType type;

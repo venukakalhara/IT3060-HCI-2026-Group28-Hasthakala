@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 
-/// TEMPORARY stand-in for a tab whose interface is still being built.
-/// Each owner replaces it with their real screen. Must not remain in the
-/// final build used for usability testing.
+// temporary stand-in for a tab whose interface is still being built.
+// Each owner replaces it with their real screen. Must not remain in the
+// final build used for usability testing.
 class PlaceholderTab extends StatelessWidget {
   final String title;
   final String interfaceId;

@@ -2,18 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../features/account/presentation/screens/profile_screen.dart';
+import '../../features/account/presentation/screens/supporter_home_screen.dart';
 import '../../features/account/presentation/state/auth_provider.dart';
 import '../../features/artisan/presentation/screens/artisan_dashboard_screen.dart';
 import '../../features/artisan/presentation/screens/artisan_orders_screen.dart';
 import '../../features/artisan/presentation/screens/manage_products_screen.dart';
-import '../widgets/placeholder_tab.dart';
+import '../localization/tr.dart';
 import '../widgets/restricted_access_view.dart';
 import '../widgets/support_context_banner.dart';
 
-/// Artisan navigation - LOCKED by the Milestone 02 contract:
-/// Home | Products | Orders | Profile.
-/// Also reused by an authorised supporter (I13): same structure, persistent
-/// "Supporting <artisan>" banner, and only permitted areas available.
+// Artisan bottom navigation.
+// Home | Products | Orders | Profile.
+// Also reused by an authorised supporter: same structure, persistent
+// "Supporting <artisan>" banner, and only permitted areas available.
 class ArtisanShell extends StatefulWidget {
   const ArtisanShell({super.key});
 
@@ -32,20 +33,19 @@ class _ArtisanShellState extends State<ArtisanShell> {
     final isSupporter = auth.isSupporterContext;
 
     final tabs = <Widget>[
-      // I10 (Member 3). Supporter home is part of I13 (Member 4).
+      // I10  Supporter home is part of I13.
       isSupporter
-          ? const PlaceholderTab(
-              title: 'Supporter Home', interfaceId: 'I13', owner: 'Member 4')
+          ? SupporterHomeScreen(onOpenTab: (i) => setState(() => _index = i))
           : ArtisanDashboardScreen(artisanId: artisanId),
-      // I11 (Member 3)
+      // I11
       auth.canManageProducts
           ? ManageProductsScreen(artisanId: artisanId)
           : RestrictedAccessView(featureName: 'Manage products', artisanName: artisanName),
-      // I12 (Member 3)
+      // I12
       auth.canManageOrders
           ? const ArtisanOrdersScreen()
           : RestrictedAccessView(featureName: 'Manage orders', artisanName: artisanName),
-      // Profile: I05 Manage + I13 entry (Member 4)
+      // Profile: I05 Manage + I13 entry
       const ProfileScreen(),
     ];
 
@@ -63,19 +63,19 @@ class _ArtisanShellState extends State<ArtisanShell> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
         onDestinationSelected: (i) => setState(() => _index = i),
-        destinations: const [
+        destinations: [
           NavigationDestination(
-              icon: Icon(Icons.home_outlined), selectedIcon: Icon(Icons.home), label: 'Home'),
+              icon: const Icon(Icons.home_outlined), selectedIcon: const Icon(Icons.home), label: context.tr('nav_home')),
           NavigationDestination(
-              icon: Icon(Icons.inventory_2_outlined),
-              selectedIcon: Icon(Icons.inventory_2),
-              label: 'Products'),
+              icon: const Icon(Icons.inventory_2_outlined),
+              selectedIcon: const Icon(Icons.inventory_2),
+              label: context.tr('nav_products')),
           NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(Icons.receipt_long),
-              label: 'Orders'),
+              icon: const Icon(Icons.receipt_long_outlined),
+              selectedIcon: const Icon(Icons.receipt_long),
+              label: context.tr('nav_orders')),
           NavigationDestination(
-              icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+              icon: const Icon(Icons.person_outline), selectedIcon: const Icon(Icons.person), label: context.tr('nav_profile')),
         ],
       ),
     );

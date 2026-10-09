@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/shared_models/user_model.dart';
 import '../../data/datasources/profile_remote_datasource.dart';
 
-/// Assigned to: WANIGATHUNGA Y. J.
-/// Branch: feature/account-support
+// Assigned to: WANIGATHUNGA Y. J.
+// Branch: feature/account-support
 class ProfileProvider extends ChangeNotifier {
   final ProfileRemoteDataSource _dataSource;
 

@@ -2,8 +2,8 @@ import '../../../../core/constants/firestore_collections.dart';
 import '../../../../core/services/firebase/firestore_service.dart';
 import '../../../../core/shared_models/user_model.dart';
 
-/// Assigned to: WANIGATHUNGA Y. J.
-/// Branch: feature/account-support
+// Assigned to: WANIGATHUNGA Y. J.
+// Branch: feature/account-support
 class ProfileRemoteDataSource {
   final FirestoreService _firestoreService;
 

@@ -40,12 +40,38 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const CartScreen());
 
       case AppRoutes.checkout:
-        return MaterialPageRoute(builder: (_) => const CheckoutScreen());
+        // Buy Now sends one product, the cart sends nothing
+        final buyNow = settings.arguments;
+        return MaterialPageRoute(
+          builder: (_) => CheckoutScreen(
+              buyNow: buyNow is BuyNowRequest ? buyNow : null),
+        );
+
+      case AppRoutes.verifiedLabMatrix:
+        return MaterialPageRoute(builder: (_) => const VerifiedLabMatrixScreen());
+
+      case AppRoutes.customCommission:
+        return MaterialPageRoute(builder: (_) => const CustomCommissionScreen());
+
+      case AppRoutes.craftCatalog:
+        return MaterialPageRoute(builder: (_) => const CraftCatalogScreen());
+
+      case AppRoutes.artisanReviews:
+        return MaterialPageRoute(builder: (_) => const ArtisanReviewsScreen());
+
+      case AppRoutes.masterArtisanProfile:
+        return MaterialPageRoute(builder: (_) => const MasterArtisanProfileScreen());
 
       case AppRoutes.orderTracking:
         final orderId = settings.arguments as String;
         return MaterialPageRoute(
           builder: (_) => OrderTrackingScreen(orderId: orderId),
+        );
+
+      case AppRoutes.buyerChat:
+        final orderId = settings.arguments as String;
+        return MaterialPageRoute(
+          builder: (_) => BuyerChatScreen(orderId: orderId),
         );
 
       case AppRoutes.artisanDashboard:

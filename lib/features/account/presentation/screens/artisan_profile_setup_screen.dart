@@ -3,12 +3,15 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/craft_categories.dart';
+import '../../../../core/localization/tr.dart';
 import '../../../../core/shared_models/artisan_profile_model.dart';
 import '../state/auth_provider.dart';
+import '../widgets/craft_name.dart';
+import '../widgets/profile_avatar_widget.dart';
+import '../widgets/profile_form_parts.dart';
+import '../widgets/profile_photo_picker.dart';
 
-/// I05 first-time setup - hi-fi "Complete Your Artisan Profile" (FR1).
-/// CREATES artisanProfiles/{uid}. Profile photo is added later in
-/// I05 Manage once Cloud Storage is enabled (decision T6).
+// I05 Complete Your Artisan Profile (first time) - creates artisanProfiles/{uid}
 class ArtisanProfileSetupScreen extends StatefulWidget {
   const ArtisanProfileSetupScreen({super.key});
 
@@ -28,7 +31,12 @@ class _ArtisanProfileSetupScreenState extends State<ArtisanProfileSetupScreen> {
     super.initState();
     final user = context.read<AuthProvider>().currentUser;
     _nameController.text = user?.displayName ?? '';
+    // only to redraw the avatar letter and the character hint
+    _nameController.addListener(_refresh);
+    _aboutController.addListener(_refresh);
   }
+
+  void _refresh() => setState(() {});
 
   @override
   void dispose() {
@@ -54,89 +62,157 @@ class _ArtisanProfileSetupScreenState extends State<ArtisanProfileSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final aboutLength = _aboutController.text.trim().length;
+    final avatarName = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : (auth.currentUser?.displayName ?? '');
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Complete Your Artisan Profile')),
+      appBar: AppBar(title: Text(context.tr('setup_title'))),
       body: SafeArea(
+        top: false,
         child: Form(
           key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text('Tell buyers about your craft and story.',
-                  style: TextStyle(color: AppColors.textSecondary)),
-              const SizedBox(height: 20),
-              const _SectionTitle('Basic Information'),
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Artisan Name'),
-                textInputAction: TextInputAction.next,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Please enter your artisan name' : null,
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+                  children: [
+                    const SizedBox(height: 4),
+                    // crafts photo to make the first visit feel welcoming
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: SizedBox(
+                        height: 120,
+                        child: Image.asset('assets/images/crafts_banner.jpg', fit: BoxFit.cover),
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(context.tr('setup_intro'),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
+
+                    FormSectionTitle(context.tr('sec_photo')),
+                    Row(
+                      children: [
+                        ProfileAvatarWidget(
+                            name: avatarName, radius: 30, uid: auth.currentUser?.uid),
+                        const SizedBox(width: 14),
+                        // saved on its own, not by Save Profile (DEVIATIONS DV6)
+                        Expanded(
+                          child: auth.currentUser == null
+                              ? const SizedBox.shrink()
+                              : ProfilePhotoButton(uid: auth.currentUser!.uid),
+                        ),
+                      ],
+                    ),
+
+                    FormSectionTitle(context.tr('sec_basic')),
+                    LabelledField(
+                      label: context.tr('label_artisan_name'),
+                      child: TextFormField(
+                        controller: _nameController,
+                        textInputAction: TextInputAction.next,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          hintText: context.tr('hint_artisan_name'),
+                          prefixIcon:
+                              const Icon(Icons.person_outline, color: AppColors.textSecondary),
+                        ),
+                        validator: (v) => context.trMessage(
+                            (v == null || v.trim().isEmpty) ? 'Artisan name is required.' : null),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    LabelledField(
+                      label: context.tr('label_craft'),
+                      child: DropdownButtonFormField<String>(
+                        initialValue: _craftType,
+                        isExpanded: true,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.palette_outlined, color: AppColors.textSecondary),
+                        ),
+                        hint: Text(context.tr('hint_craft')),
+                        items: CraftCategories.all
+                            .map((c) => DropdownMenuItem(
+                                value: c.key, child: Text(craftName(context, c.key))))
+                            .toList(),
+                        onChanged: (v) => setState(() => _craftType = v),
+                        validator: (v) =>
+                            context.trMessage(v == null ? 'Please select a craft type.' : null),
+                      ),
+                    ),
+
+                    FormSectionTitle(context.tr('about_my_craft')),
+                    LabelledField(
+                      label: context.tr('label_about'),
+                      helper: aboutLength >= 10
+                          ? FieldHint(context.tr('about_ok'), ok: true)
+                          : FieldHint(context.tr('about_count', {'count': '$aboutLength'})),
+                      child: TextFormField(
+                        controller: _aboutController,
+                        maxLines: 4,
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(hintText: context.tr('hint_about')),
+                        validator: (v) => context.trMessage((v == null || v.trim().length < 10)
+                            ? 'Please write a short description (10+ characters).'
+                            : null),
+                      ),
+                    ),
+
+                    FormSectionTitle(context.tr('sec_location')),
+                    LabelledField(
+                      label: context.tr('label_location'),
+                      helper: FieldHint(context.tr('location_help'),
+                          icon: Icons.lock_outline_rounded),
+                      child: TextFormField(
+                        controller: _locationController,
+                        textCapitalization: TextCapitalization.words,
+                        decoration: InputDecoration(
+                          hintText: context.tr('hint_location'),
+                          prefixIcon: const Icon(Icons.location_on_outlined,
+                              color: AppColors.textSecondary),
+                        ),
+                        validator: (v) => context.trMessage(
+                            (v == null || v.trim().isEmpty) ? 'Please enter your location.' : null),
+                      ),
+                    ),
+                    if (auth.errorMessage != null) ...[
+                      const SizedBox(height: 16),
+                      Text(context.trMessage(auth.errorMessage)!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(color: AppColors.error)),
+                    ],
+                  ],
+                ),
               ),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                initialValue: _craftType,
-                decoration: const InputDecoration(labelText: 'Craft Type'),
-                items: CraftCategories.all
-                    .map((c) => DropdownMenuItem(value: c.key, child: Text(c.label)))
-                    .toList(),
-                onChanged: (v) => setState(() => _craftType = v),
-                validator: (v) => v == null ? 'Please choose your craft type' : null,
+
+              // save at the bottom like the edit screen, sign out stays small under it
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ElevatedButton(
+                      onPressed: auth.isLoading ? null : _save,
+                      child: auth.isLoading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: AppColors.onPrimary))
+                          : Text(context.tr('save_profile')),
+                    ),
+                    TextButton(onPressed: auth.logout, child: Text(context.tr('sign_out'))),
+                  ],
+                ),
               ),
-              const SizedBox(height: 20),
-              const _SectionTitle('About My Craft'),
-              TextFormField(
-                controller: _aboutController,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                    hintText: 'Tell us about your craft, materials and inspiration.'),
-                validator: (v) => (v == null || v.trim().length < 10)
-                    ? 'Please write at least a short sentence (10+ characters)'
-                    : null,
-              ),
-              const SizedBox(height: 20),
-              const _SectionTitle('Location'),
-              TextFormField(
-                controller: _locationController,
-                decoration: const InputDecoration(hintText: 'e.g. Colombo, Sri Lanka'),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Please enter your location' : null,
-              ),
-              if (auth.errorMessage != null) ...[
-                const SizedBox(height: 16),
-                Text(auth.errorMessage!, style: const TextStyle(color: AppColors.error)),
-              ],
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: auth.isLoading ? null : _save,
-                child: auth.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: AppColors.onPrimary))
-                    : const Text('Save Profile'),
-              ),
-              TextButton(onPressed: auth.logout, child: const Text('Sign out')),
             ],
           ),
         ),
       ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String text;
-  const _SectionTitle(this.text);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Text(text,
-          style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.primary)),
     );
   }
 }

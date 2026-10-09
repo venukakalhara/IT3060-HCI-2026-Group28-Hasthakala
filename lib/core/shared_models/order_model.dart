@@ -1,6 +1,6 @@
 import '../utils/firestore_converters.dart';
 
-/// LOCKED order status values (decision D5). Stored as the enum name.
+// order status values (stored as the enum name)
 enum OrderStatus {
   pending,
   confirmed,
@@ -10,7 +10,7 @@ enum OrderStatus {
   cancelled,
 }
 
-/// LOCKED payment values stored in orders.paymentMethod / paymentStatus.
+// values stored in orders.paymentMethod / paymentStatus
 class PaymentMethods {
   static const String cashOnDelivery = 'cash_on_delivery';
   static const String bankTransfer = 'bank_transfer';
@@ -21,9 +21,9 @@ class PaymentStatuses {
   static const String paid = 'paid';
 }
 
-/// One line in an order (and one document in users/{uid}/cart).
-/// Stored fields: productId, artisanId, title, unitPrice, quantity, imageUrl
-/// (+ addedAt for cart documents only).
+// One line in an order (and one document in users/{uid}/cart).
+// Stored fields: productId, artisanId, title, unitPrice, quantity, imageUrl
+// (+ addedAt for cart documents only).
 class OrderItemModel {
   final String productId;
   final String title;
@@ -71,7 +71,7 @@ class OrderItemModel {
   }
 }
 
-/// One entry in orders.statusHistory (drives the I08 progress display).
+// One entry in orders.statusHistory.
 class OrderStatusChange {
   final OrderStatus status;
   final DateTime at;
@@ -97,12 +97,11 @@ class OrderStatusChange {
   }
 }
 
-/// orders/{orderId} - ONE order per artisan. Created by I07 (Member 2),
-/// read by I08 (Member 2), status updated by I12 (Member 3 or supporter).
-/// LOCKED Firestore field names: see docs/FIREBASE_SCHEMA.md.
-/// Dart -> stored names: id -> orderId, totalAmountLkr -> total,
-/// shippingAddress -> deliveryAddress.addressLine,
-/// contactPhone -> deliveryAddress.phone.
+// orders/{orderId} - one order per artisan. Created by I07,
+// read by I08, status updated by I12.
+// Dart -> stored names: id -> orderId, totalAmountLkr -> total,
+// shippingAddress -> deliveryAddress.addressLine,
+// contactPhone -> deliveryAddress.phone.
 class OrderModel {
   final String id;
   final String buyerId;

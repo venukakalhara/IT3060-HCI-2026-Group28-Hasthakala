@@ -3,9 +3,7 @@ import '../../../../core/services/firebase/firebase_auth_service.dart';
 import '../../../../core/services/firebase/firestore_service.dart';
 import '../../../../core/shared_models/user_model.dart';
 
-/// I01 Entry/Auth data access (Member 4).
-/// Identity comes from Firebase Authentication; the account document is
-/// users/{uid} (see docs/FIREBASE_SCHEMA.md).
+// sign in / sign up data: Firebase Auth + users/{uid}
 class AuthRemoteDataSource {
   final FirebaseAuthService _authService;
   final FirestoreService _firestoreService;
@@ -16,12 +14,12 @@ class AuthRemoteDataSource {
   })  : _authService = authService ?? FirebaseAuthService(),
         _firestoreService = firestoreService ?? FirestoreService();
 
-  /// Emits the signed-in user's uid, or null when signed out.
-  /// Firebase keeps the session on the device, so this restores it on restart.
+  // Emits the signed-in user's uid, or null when signed out.
+  // Firebase keeps the session on the device, so this restores it on restart.
   Stream<String?> get uidChanges =>
       _authService.authStateChanges.map((user) => user?.uid);
 
-  /// READ users/{uid}
+  // read users/{uid}
   Future<UserModel?> fetchUser(String uid) async {
     final doc = await _firestoreService.getDocument(
       collection: FirestoreCollections.users,
@@ -38,34 +36,53 @@ class AuthRemoteDataSource {
     );
   }
 
-  /// CREATE Firebase Auth account + users/{uid}
-  Future<UserModel> register({
+  // false when the person closes the Google account picker
+  Future<bool> loginWithGoogle() async {
+    final credential = await _authService.signInWithGoogle();
+    return credential != null;
+  }
+
+  // step 1 of sign up: only the Firebase Auth account (Create Account screen)
+  Future<String> createAccount({
     required String email,
     required String password,
     required String displayName,
-    required AccountPurpose primaryPurpose,
   }) async {
     final credential = await _authService.signUpWithEmailAndPassword(
       email: email,
       password: password,
     );
-    final uid = credential.user!.uid;
+    final user = credential.user!;
+    await user.updateDisplayName(displayName.trim());
+    return user.uid;
+  }
 
+  // details of the signed-in Firebase Auth account (used before users/{uid} exists)
+  ({String uid, String email, String name})? get authAccount {
+    final user = _authService.currentUser;
+    if (user == null) return null;
+    return (uid: user.uid, email: user.email ?? '', name: user.displayName ?? '');
+  }
+
+  // step 2 of sign up: users/{uid} once they pick Shop or Sell
+  Future<void> createUserDocument({
+    required String uid,
+    required String email,
+    required String displayName,
+    required AccountPurpose primaryPurpose,
+  }) async {
     final newUser = UserModel(
       uid: uid,
       email: email.trim(),
       displayName: displayName.trim(),
       primaryPurpose: primaryPurpose,
     );
-
     await _firestoreService.setDocument(
       collection: FirestoreCollections.users,
       docId: uid,
       data: newUser.toMap(),
       merge: false,
     );
-
-    return newUser;
   }
 
   Future<void> sendPasswordReset(String email) =>

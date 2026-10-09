@@ -1,12 +1,11 @@
 import '../utils/firestore_converters.dart';
 
-/// Answer to "How will you start using HASTHAKALA?" (I01 onboarding).
-/// This is NOT a permission. What a user may do is decided by their
-/// contexts (artisan profile, support grants) and enforced by
-/// Firestore security rules (NFR3).
+// Answer to "How will you start using HASTHAKALA?".
+// Not a permission - what someone can do comes from their artisan profile
+// and support grants, and the security rules.
 enum AccountPurpose { shop, sell }
 
-/// users/{uid} - LOCKED field names, see docs/FIREBASE_SCHEMA.md.
+// users/{uid}
 class UserModel {
   final String uid;
   final String email;
