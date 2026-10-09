@@ -16,6 +16,41 @@
 
 ---
 
+## ▶️ Run the app
+
+**Download the app:** the Android APK is attached to the latest GitHub Release (or the link in the report). Install it on an Android phone (allow "install unknown apps").
+
+**Build from source**
+
+What you need: Flutter 3.47.x (Dart 3.13), Android Studio with an Android emulator that has Google Play, and Git.
+
+```bash
+git clone https://github.com/venukakalhara/IT3060-HCI-2026-Group28-Hasthakala.git
+cd IT3060-HCI-2026-Group28-Hasthakala
+git checkout developer
+flutter pub get
+flutter run                      # with the emulator or a phone connected
+```
+
+Release APK: `flutter build apk --release` -> `build/app/outputs/flutter-apk/app-release.apk`
+
+Checks: `flutter analyze` and `flutter test`
+
+The Firebase config (`android/app/google-services.json`) is in the repo, so the app connects to our Firebase project (`hasthakala-group28`) without extra setup. Google sign-in works in the release APK and on laptops whose SHA-1 is added in Firebase; email sign-in works everywhere.
+
+**Test accounts** (test data only, password `Test@1234`)
+
+| Account | Use it as |
+|---|---|
+| `nadeesha.test@hasthakala.lk` | Artisan (Nadeesha Silva) - choose Artisan or Buyer on "Continue as" |
+| `kavindu2.test@hasthakala.lk` | Buyer (Kavindu) |
+
+You can also create your own account from the app (Create Account, then Shop or Sell).
+
+**Languages:** English, Sinhala and Tamil - picked on first launch, changed later in Profile > Language.
+
+---
+
 ## 🏗 Architecture Overview: Feature-First Clean Pattern
 
 The project is structured under **Feature-First Architecture** to completely isolate each team member's workspace and prevent merge conflicts across branches:
@@ -85,9 +120,15 @@ git push origin feature/<your-feature-name>
 
 ## 🔥 Firebase Setup & Collections Reference
 
-All Firestore collection names are standardized inside `lib/core/constants/firestore_collections.dart`:
-- `users`: User profiles (Buyers, Artisans, Admins)
-- `products`: Handicraft items created by artisans
-- `orders`: Purchase orders created by buyers
-- `chats`: Direct buyer-artisan communication channels
-- `family_permissions`: Delegated helper permissions for elderly artisans
+Collection names live in `lib/core/constants/firestore_collections.dart`; the full structure is in `docs/FIREBASE_SCHEMA.md`.
+- `users` (with `users/{uid}/cart`): accounts, language, saved address, cart
+- `artisanProfiles`, `profilePhotos`: artisan profiles and small profile photos
+- `products`: crafts listed by artisans
+- `orders`: one order per artisan, with status history
+- `conversations` (with `messages`): order chats between buyer and artisan
+- `reviews`: product reviews
+- `supportInvites`, `supportGrants`: family supporter invitations and permissions
+
+Security rules are in `firestore.rules` (v2.2): people can only read and change their own data, artisans their own shop, and supporters only what the artisan allowed. Deploy with `firebase deploy --only firestore:rules --project hasthakala-group28`.
+
+More project notes: `docs/DECISIONS.md`, `docs/DEVIATIONS.md`, `docs/TRANSLATION.md`, `docs/PURCHASE_NOTES.md`.
