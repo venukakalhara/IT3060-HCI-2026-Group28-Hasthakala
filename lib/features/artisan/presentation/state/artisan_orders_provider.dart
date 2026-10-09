@@ -80,20 +80,6 @@ class ArtisanOrdersProvider extends ChangeNotifier {
     );
   }
 
-  @Deprecated('Use listenToArtisanOrders(artisanId)')
-  void listenToOrders() {
-    _ordersSubscription?.cancel();
-    _isLoading = true;
-    notifyListeners();
-
-    _ordersSubscription = _dataSource.getIncomingOrders().listen((orders) {
-      orders.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-      _incomingOrders = orders;
-      _isLoading = false;
-      notifyListeners();
-    });
-  }
-
   void setStatusFilter(OrderStatus? status) {
     _selectedStatus = status;
     notifyListeners();

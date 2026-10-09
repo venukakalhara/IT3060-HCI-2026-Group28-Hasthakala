@@ -21,6 +21,18 @@ class ArtisanProductDataSource {
             snapshot.docs.map((doc) => ProductModel.fromMap(doc.data(), doc.id)).toList());
   }
 
+  // Shop name buyers see on a new listing, taken from the artisan profile
+  // (not the signed-in account, which may be a supporter).
+  Future<String?> getArtisanDisplayName(String artisanId) async {
+    final doc = await _firestoreService.getDocument(
+      collection: FirestoreCollections.artisanProfiles,
+      docId: artisanId,
+    );
+    final name = doc.data()?['displayName'];
+    if (name is String && name.trim().isNotEmpty) return name.trim();
+    return null;
+  }
+
   Future<String> createProduct(ProductModel product) async {
     final docRef = _firestoreService.instance.collection(FirestoreCollections.products).doc();
     final newProduct = ProductModel(

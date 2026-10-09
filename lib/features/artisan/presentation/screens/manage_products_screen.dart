@@ -124,6 +124,16 @@ class _ManageProductsScreenState extends State<ManageProductsScreen> {
             final allProducts = provider.myProducts;
             final filtered = provider.filteredProducts;
 
+            if (allProducts.isEmpty && provider.errorMessage != null) {
+              return EmptyStateView(
+                icon: Icons.cloud_off_outlined,
+                title: 'Could not load your crafts',
+                description: 'Check your connection and try again.',
+                actionButtonText: 'Try again',
+                onActionPressed: _loadProducts,
+              );
+            }
+
             if (allProducts.isEmpty) {
               return EmptyStateView(
                 icon: Icons.inventory_2_outlined,

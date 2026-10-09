@@ -34,6 +34,16 @@ class _OrderActionBottomSheetState extends State<OrderActionBottomSheet> {
     super.dispose();
   }
 
+  // Orders only move forward. Delivered and cancelled orders are final,
+  // and a shipped order can no longer be cancelled.
+  bool _canMoveTo(OrderStatus to) {
+    final from = widget.order.status;
+    if (to == from) return true;
+    if (from == OrderStatus.delivered || from == OrderStatus.cancelled) return false;
+    if (to == OrderStatus.cancelled) return from != OrderStatus.shipped;
+    return to.index > from.index;
+  }
+
   String _statusDescription(OrderStatus status) {
     switch (status) {
       case OrderStatus.pending:
@@ -131,14 +141,24 @@ class _OrderActionBottomSheetState extends State<OrderActionBottomSheet> {
                         ? (status == OrderStatus.cancelled ? AppColors.error : AppColors.primary)
                         : AppColors.border,
                   ),
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() => _selectedStatus = status);
-                    }
-                  },
+                  onSelected: _canMoveTo(status)
+                      ? (selected) {
+                          if (selected) {
+                            setState(() => _selectedStatus = status);
+                          }
+                        }
+                      : null,
                 );
               }).toList(),
             ),
+            if (widget.order.status == OrderStatus.delivered ||
+                widget.order.status == OrderStatus.cancelled) ...[
+              const SizedBox(height: 8),
+              const Text(
+                'This order is closed, so its status can no longer change.',
+                style: TextStyle(fontSize: 12, color: AppColors.textSecondary),
+              ),
+            ],
             const SizedBox(height: 8),
             Text(
               _statusDescription(_selectedStatus),

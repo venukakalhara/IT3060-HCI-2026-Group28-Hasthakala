@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/custom_app_bar.dart';
+import '../../../account/presentation/screens/my_artisan_profile_screen.dart';
 import '../../../account/presentation/state/auth_provider.dart';
 import '../state/artisan_dashboard_provider.dart';
 import '../state/artisan_orders_provider.dart';
@@ -13,7 +14,7 @@ import 'add_edit_product_screen.dart';
 import 'artisan_order_details_screen.dart';
 import 'artisan_orders_screen.dart';
 import 'artisan_product_details_screen.dart';
-import 'manage_artisan_profile_screen.dart';
+import 'artisan_messages_screen.dart';
 import 'manage_products_screen.dart';
 
 /// Assigned to: KUMARI R. P. G. D.
@@ -77,14 +78,15 @@ class _ArtisanDashboardScreenState extends State<ArtisanDashboardScreen> {
                   ),
                   InkWell(
                     borderRadius: BorderRadius.circular(8),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ManageArtisanProfileScreen(artisanId: effectiveArtisanId),
-                        ),
-                      );
-                    },
+                    // the shared I05 screen (Profile tab) - one profile screen in the app
+                    onTap: auth.isSupporterContext
+                        ? null
+                        : () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const MyArtisanProfileScreen()),
+                            );
+                          },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                       child: Row(
@@ -226,29 +228,52 @@ class _ArtisanDashboardScreenState extends State<ArtisanDashboardScreen> {
                 ),
                 const SizedBox(height: 10),
               ],
-              ListTile(
-                tileColor: AppColors.surface,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  side: const BorderSide(color: AppColors.border),
+              if (auth.canRespondToCustomers) ...[
+                ListTile(
+                  tileColor: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: const CircleAvatar(
+                    backgroundColor: AppColors.success,
+                    child: Icon(Icons.chat_bubble_outline, color: Colors.white),
+                  ),
+                  title: const Text('Customer Messages',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Read and reply to buyers about their orders'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ArtisanMessagesScreen()),
+                    );
+                  },
                 ),
-                leading: const CircleAvatar(
-                  backgroundColor: AppColors.primary,
-                  child: Icon(Icons.badge_outlined, color: Colors.white),
+                const SizedBox(height: 10),
+              ],
+              if (!auth.isSupporterContext)
+                ListTile(
+                  tileColor: AppColors.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: AppColors.border),
+                  ),
+                  leading: const CircleAvatar(
+                    backgroundColor: AppColors.primary,
+                    child: Icon(Icons.badge_outlined, color: Colors.white),
+                  ),
+                  title: const Text('Manage Artisan Profile',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  subtitle: const Text('Edit craft specialty, workshop bio and location'),
+                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyArtisanProfileScreen()),
+                    );
+                  },
                 ),
-                title: const Text('Manage Artisan Profile',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: const Text('Edit craft specialty, workshop bio and location'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 14),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ManageArtisanProfileScreen(artisanId: effectiveArtisanId),
-                    ),
-                  );
-                },
-              ),
               const SizedBox(height: 24),
 
               // Recent Orders Section

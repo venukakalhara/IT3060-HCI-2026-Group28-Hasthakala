@@ -30,6 +30,27 @@ class ArtisanChatDataSource {
     return ConversationModel.fromMap(doc.data()!, doc.id);
   }
 
+  // I09 artisan inbox: every chat that belongs to this shop, newest first.
+  // Filtered by artisanId so the security rules can check the whole list.
+  Stream<List<ConversationModel>> streamArtisanConversations(String artisanId) {
+    return _firestoreService.instance
+        .collection(FirestoreCollections.conversations)
+        .where('artisanId', isEqualTo: artisanId)
+        .snapshots()
+        .map((snapshot) {
+      final list = snapshot.docs
+          .map((doc) => ConversationModel.fromMap(doc.data(), doc.id))
+          .toList();
+      list.sort((a, b) =>
+          (b.lastMessageAt ?? b.createdAt).compareTo(a.lastMessageAt ?? a.createdAt));
+      return list;
+    });
+  }
+
+  // Saves the reply and moves the chat's last message along in one batch.
+  // If the buyer already started the chat, only lastMessage and lastMessageAt
+  // change (that is all the rules allow). If the artisan writes first, the
+  // chat document is created with every field, same as the buyer side.
   Future<void> replyToBuyer({
     required String conversationId,
     required ChatMessageModel message,
@@ -39,29 +60,39 @@ class ArtisanChatDataSource {
     String? buyerId,
     String? artisanId,
   }) async {
-    // 1. Add message to subcollection
-    await _firestoreService.addDocument(
-      collection: FirestoreCollections.conversationMessages(conversationId),
-      data: message.toMap(),
-    );
+    final db = _firestoreService.instance;
+    final conversationRef =
+        db.collection(FirestoreCollections.conversations).doc(conversationId);
+    final messageRef = db
+        .collection(FirestoreCollections.conversationMessages(conversationId))
+        .doc();
+    final sentAt = FirestoreConverters.toTimestamp(message.timestamp);
 
-    // 2. Update conversation document
-    final conversationData = <String, dynamic>{
-      'conversationId': conversationId,
-      'lastMessage': message.content,
-      'lastMessageAt': FirestoreConverters.toTimestamp(message.timestamp),
-      if (type != null) 'type': type == ConversationType.order ? 'order' : 'product_query',
-      if (orderId != null) 'orderId': orderId,
-      if (productId != null) 'productId': productId,
-      if (buyerId != null) 'buyerId': buyerId,
-      if (artisanId != null) 'artisanId': artisanId,
-    };
+    final existing = await conversationRef.get();
 
-    await _firestoreService.setDocument(
-      collection: FirestoreCollections.conversations,
-      docId: conversationId,
-      data: conversationData,
-      merge: true,
-    );
+    final messageData = message.toMap();
+    messageData['messageId'] = messageRef.id;
+
+    final batch = db.batch();
+    batch.set(messageRef, messageData);
+    if (existing.exists) {
+      batch.update(conversationRef, {
+        'lastMessage': message.content,
+        'lastMessageAt': sentAt,
+      });
+    } else {
+      batch.set(conversationRef, {
+        'conversationId': conversationId,
+        'type': type == ConversationType.productQuery ? 'product_query' : 'order',
+        'orderId': orderId,
+        'productId': productId,
+        'buyerId': buyerId ?? '',
+        'artisanId': artisanId ?? '',
+        'lastMessage': message.content,
+        'lastMessageAt': sentAt,
+        'createdAt': sentAt,
+      });
+    }
+    await batch.commit();
   }
 }

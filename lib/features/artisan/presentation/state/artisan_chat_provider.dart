@@ -54,6 +54,7 @@ class ArtisanChatProvider extends ChangeNotifier {
   Future<bool> sendReply({
     required String chatId,
     required String artisanId,
+    required String senderUid,
     required String buyerId,
     required String replyText,
     String senderName = 'Artisan',
@@ -71,7 +72,8 @@ class ArtisanChatProvider extends ChangeNotifier {
     try {
       final message = ChatMessageModel(
         id: '',
-        senderId: artisanId,
+        // the person typing (artisan or supporter) - the rules check this
+        senderId: senderUid,
         senderName: senderName,
         senderContext: senderContext,
         receiverId: buyerId,

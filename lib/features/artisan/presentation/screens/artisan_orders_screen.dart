@@ -12,6 +12,7 @@ import '../state/artisan_orders_provider.dart';
 import '../widgets/order_action_bottom_sheet.dart';
 import '../widgets/order_status_badge.dart';
 import 'artisan_chat_screen.dart';
+import 'artisan_messages_screen.dart';
 import 'artisan_order_details_screen.dart';
 
 /// Assigned to: KUMARI R. P. G. D.
@@ -80,8 +81,21 @@ class _ArtisanOrdersScreenState extends State<ArtisanOrdersScreen> {
     final canChat = auth.canRespondToCustomers;
 
     return Scaffold(
-      appBar: const CustomAppBar(
+      appBar: CustomAppBar(
         title: 'Customer Orders',
+        actions: [
+          if (canChat)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline, color: AppColors.primary),
+              tooltip: 'Customer Messages',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ArtisanMessagesScreen()),
+                );
+              },
+            ),
+        ],
       ),
       body: Consumer<ArtisanOrdersProvider>(
         builder: (context, provider, _) {
@@ -91,6 +105,16 @@ class _ArtisanOrdersScreenState extends State<ArtisanOrdersScreen> {
 
           final allOrders = provider.incomingOrders;
           final filtered = provider.filteredOrders;
+
+          if (allOrders.isEmpty && provider.errorMessage != null) {
+            return EmptyStateView(
+              icon: Icons.cloud_off_outlined,
+              title: 'Could not load orders',
+              description: 'Check your connection and try again.',
+              actionButtonText: 'Try again',
+              onActionPressed: _loadOrders,
+            );
+          }
 
           if (allOrders.isEmpty) {
             return const EmptyStateView(
@@ -339,17 +363,26 @@ class _ArtisanOrdersScreenState extends State<ArtisanOrdersScreen> {
                                               icon: const Icon(Icons.edit_note, size: 16),
                                               label: const Text('Status', style: TextStyle(fontSize: 12.5)),
                                               onPressed: () {
+                                                final messenger = ScaffoldMessenger.of(context);
                                                 showModalBottomSheet(
                                                   context: context,
                                                   isScrollControlled: true,
                                                   builder: (_) => OrderActionBottomSheet(
                                                     order: order,
-                                                    onStatusChanged: (newStatus, reason) {
-                                                      provider.changeOrderStatus(
+                                                    onStatusChanged: (newStatus, reason) async {
+                                                      final ok = await provider.changeOrderStatus(
                                                         orderId: order.id,
                                                         status: newStatus,
                                                         updatedByUid: auth.currentUser?.uid,
                                                         cancelReason: reason,
+                                                      );
+                                                      messenger.showSnackBar(
+                                                        SnackBar(
+                                                          content: Text(ok
+                                                              ? 'Order status updated to ${newStatus.name.toUpperCase()}'
+                                                              : 'Status not saved. Check your connection and try again.'),
+                                                          backgroundColor: ok ? null : AppColors.error,
+                                                        ),
                                                       );
                                                     },
                                                   ),

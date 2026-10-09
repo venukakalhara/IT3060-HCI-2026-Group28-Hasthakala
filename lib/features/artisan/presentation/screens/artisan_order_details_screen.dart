@@ -90,6 +90,13 @@ class _ArtisanOrderDetailsScreenState extends State<ArtisanOrderDetailsScreen> {
             messenger.showSnackBar(
               SnackBar(content: Text('Order status updated to ${newStatus.name.toUpperCase()}')),
             );
+          } else {
+            messenger.showSnackBar(
+              const SnackBar(
+                content: Text('Status not saved. Check your connection and try again.'),
+                backgroundColor: AppColors.error,
+              ),
+            );
           }
         },
       ),

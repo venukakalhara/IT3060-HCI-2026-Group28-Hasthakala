@@ -71,9 +71,14 @@ class _ArtisanChatScreenState extends State<ArtisanChatScreen> {
         ? ConversationType.order
         : ConversationType.productQuery;
 
+    final senderUid = auth.currentUser?.uid ?? '';
+    if (senderUid.isEmpty) return;
+
+    final messenger = ScaffoldMessenger.of(context);
     final success = await provider.sendReply(
       chatId: widget.chatId,
       artisanId: effectiveArtisanId,
+      senderUid: senderUid,
       buyerId: widget.buyerId,
       replyText: text,
       senderName: senderName,
@@ -83,9 +88,17 @@ class _ArtisanChatScreenState extends State<ArtisanChatScreen> {
       productId: widget.productTitle != null ? widget.chatId : null,
     );
 
+    if (!mounted) return;
     if (success) {
       _replyController.clear();
       Future.delayed(const Duration(milliseconds: 150), _scrollToBottom);
+    } else {
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text('Message not sent. Check your connection and try again.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
     }
   }
 

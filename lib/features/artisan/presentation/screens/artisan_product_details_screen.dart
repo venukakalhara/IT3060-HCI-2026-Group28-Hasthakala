@@ -11,7 +11,6 @@ import '../state/product_crud_provider.dart';
 import '../widgets/craft_image_view.dart';
 import '../widgets/product_delete_dialog.dart';
 import 'add_edit_product_screen.dart';
-import 'artisan_chat_screen.dart';
 
 class ArtisanProductDetailsScreen extends StatefulWidget {
   final ProductModel product;
@@ -29,10 +28,20 @@ class _ArtisanProductDetailsScreenState extends State<ArtisanProductDetailsScree
   late ProductModel _product;
   int _currentImageIndex = 0;
 
+  // This screen is opened with Navigator.push, so it can't see the provider
+  // created inside Manage Products - it keeps its own one instead.
+  final ProductCrudProvider _crud = ProductCrudProvider();
+
   @override
   void initState() {
     super.initState();
     _product = widget.product;
+  }
+
+  @override
+  void dispose() {
+    _crud.dispose();
+    super.dispose();
   }
 
   void _showDeleteConfirmation(BuildContext context) {
@@ -42,7 +51,7 @@ class _ArtisanProductDetailsScreenState extends State<ArtisanProductDetailsScree
       context,
       productTitle: _product.title,
       onConfirm: () async {
-        final crudProvider = context.read<ProductCrudProvider>();
+        final crudProvider = _crud;
         final success = await crudProvider.deleteProduct(_product.id);
         if (!mounted) return;
         if (success) {
@@ -201,13 +210,21 @@ class _ArtisanProductDetailsScreenState extends State<ArtisanProductDetailsScree
                             value: _product.isAvailable,
                             activeThumbColor: AppColors.primary,
                             onChanged: (val) async {
-                              final crudProvider = context.read<ProductCrudProvider>();
+                              final crudProvider = _crud;
                               final messenger = ScaffoldMessenger.of(context);
                               final success = await crudProvider.toggleAvailability(
                                 _product.id,
                                 val,
                                 updatedBy: auth.currentUser?.uid,
                               );
+                              if (!success && mounted) {
+                                messenger.showSnackBar(
+                                  SnackBar(
+                                    content: Text(crudProvider.errorMessage ?? 'Could not update the listing.'),
+                                    backgroundColor: AppColors.error,
+                                  ),
+                                );
+                              }
                               if (success && mounted) {
                                 setState(() {
                                   _product = ProductModel(
@@ -354,19 +371,23 @@ class _ArtisanProductDetailsScreenState extends State<ArtisanProductDetailsScree
                     title: const Text('Customer Inquiries', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                     subtitle: const Text('Questions asked by buyers regarding this craft item', style: TextStyle(fontSize: 12)),
                     trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                    // Buyers can't ask product questions yet (only order chats),
+                    // so this says so instead of opening an empty chat.
                     onTap: () {
-                      // Open product query chat
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ArtisanChatScreen(
-                            chatId: '${_product.id}_inquiry',
-                            artisanId: _product.artisanId,
-                            buyerId: 'customer',
-                            buyerName: 'Customer Inquiry',
-                            productTitle: _product.title,
-                            productPrice: _product.priceLkr,
+                      showDialog<void>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Coming soon'),
+                          content: const Text(
+                            'Product questions from buyers will appear here in a later version. '
+                            'For now, buyers message you about their orders - see Customer Messages.',
                           ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: const Text('OK'),
+                            ),
+                          ],
                         ),
                       );
                     },

@@ -23,6 +23,14 @@ class ProductCrudProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<String?> artisanDisplayName(String artisanId) async {
+    try {
+      return await _dataSource.getArtisanDisplayName(artisanId);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<bool> saveProduct(ProductModel product, {bool isEditing = false}) async {
     _isSaving = true;
     _errorMessage = null;

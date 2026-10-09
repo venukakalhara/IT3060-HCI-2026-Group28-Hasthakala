@@ -90,9 +90,19 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     final effectiveArtisanId = widget.artisanId.isNotEmpty && widget.artisanId != 'sample_artisan_id'
         ? widget.artisanId
         : (auth.actingArtisanId ?? auth.currentUser?.uid ?? '');
-    final artisanName = auth.currentUser?.displayName ?? 'Master Artisan';
-
     final isEditing = widget.productToEdit != null;
+
+    // Shop name for buyers comes from the artisan profile, not from whoever is
+    // signed in (a supporter adds products under the artisan's name).
+    var artisanName = widget.productToEdit?.artisanName ?? '';
+    if (artisanName.isEmpty) {
+      artisanName = await provider.artisanDisplayName(effectiveArtisanId) ??
+          auth.activeGrant?.artisanName ??
+          auth.currentUser?.displayName ??
+          '';
+    }
+    if (!mounted) return;
+
     final title = _titleController.text.trim();
     final price = double.tryParse(_priceController.text.trim()) ?? 0.0;
     final stock = int.tryParse(_stockController.text.trim()) ?? 0;
@@ -100,9 +110,7 @@ class _AddEditProductScreenState extends State<AddEditProductScreen> {
     final product = ProductModel(
       id: widget.productToEdit?.id ?? '',
       artisanId: effectiveArtisanId,
-      artisanName: widget.productToEdit?.artisanName.isNotEmpty == true
-          ? widget.productToEdit!.artisanName
-          : artisanName,
+      artisanName: artisanName,
       title: title,
       description: _descController.text.trim(),
       priceLkr: price,

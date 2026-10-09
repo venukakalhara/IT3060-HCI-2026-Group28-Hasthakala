@@ -21,14 +21,6 @@ class ArtisanOrderDataSource {
             snapshot.docs.map((doc) => OrderModel.fromMap(doc.data(), doc.id)).toList());
   }
 
-  @Deprecated('Use getArtisanOrders(artisanId). Orders must be scoped to the artisan.')
-  Stream<List<OrderModel>> getIncomingOrders() {
-    return _firestoreService
-        .streamCollection(collection: FirestoreCollections.orders)
-        .map((snapshot) =>
-            snapshot.docs.map((doc) => OrderModel.fromMap(doc.data(), doc.id)).toList());
-  }
-
   Future<OrderModel?> getOrder(String orderId) async {
     final doc = await _firestoreService.getDocument(
       collection: FirestoreCollections.orders,
